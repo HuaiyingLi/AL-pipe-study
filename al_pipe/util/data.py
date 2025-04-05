@@ -42,7 +42,7 @@ class Data:
         # seed the program
         seeded_state = seed_all(seed)
         # split the data
-        self.train, self.test, self.val, self.pool = None
+        self.train, self.test, self.val, self.pool = (None, None, None, None)
 
         # Load the CSV data into a DataFrame
         data = pd.read_csv(self.data_path, sep=" ")
