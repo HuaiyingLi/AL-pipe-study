@@ -13,7 +13,7 @@ def seed_all(seed):
         seed (int): The random seed value to use for all random number generators.
 
     Returns:
-        np.random.RandomState(0): random state from np lib could be used in sklearn
+        np.random.RandomState(): random state from np lib could be used in scikit-learn
     """  # noqa: E501
     # https://scikit-learn.org/stable/common_pitfalls.html
     # TODO: account for the random state instance
@@ -28,4 +28,20 @@ def seed_all(seed):
     torch.cuda.manual_seed(seed)
     np.random.seed(seed)
     random.seed(seed)
-    return np.random.RandomState(0)
+    return np.random.RandomState(seed)
+
+
+def avail_device(device):
+    """
+    Check device availability and return appropriate device.
+
+    Args:
+        device (str): Requested device ('cuda' or 'cpu')
+
+    Returns:
+        torch.device: Available device to use
+    """
+    torch.backends.cudnn.enabled = False
+    use_cuda = torch.cuda.is_available()
+    device = torch.device(device if use_cuda else "cpu")
+    print("device: ", device)

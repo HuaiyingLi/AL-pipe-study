@@ -41,17 +41,15 @@ class Data:
 
         # seed the program
         seeded_state = seed_all(seed)
-        # split the data
-        self.train, self.test, self.val, self.pool = (None, None, None, None)
 
         # Load the CSV data into a DataFrame
-        data = pd.read_csv(self.data_path, sep=" ")
+        data = self.load_data(self.data_path)
 
         # Split off the test set (e.g., 20% of the data)
         data_remaining, self.test = train_test_split(data, test_size=0.2, random_state=seeded_state)
 
         # 2. From the remaining data, split out the initial labeled data and the pool.  # noqa: E501
-        # Here, we'll allocate 20% of the remaining data for an initial labeled set  # noqa: E501
+        # allocate 20% of the remaining data for an initial labeled set  # noqa: E501
         # (which we can later further split into training and validation) and 80% as the pool.  # noqa: E501
         initial_labeled, self.pool = train_test_split(data_remaining, test_size=0.8, random_state=seeded_state)  # noqa: E501
 
@@ -59,7 +57,23 @@ class Data:
         # For example, 80% training and 20% validation:
         self.train, self.val = train_test_split(initial_labeled, test_size=0.2, random_state=seeded_state)  # noqa: E501
 
-    def load_data(data_path: str) -> None:
+    def get_test_data(self) -> None:
+        """Returning test data."""
+        return self.test
+
+    def get_train_data(self) -> None:
+        """Returning train data."""
+        return self.train
+
+    def get_pool_data(self) -> None:
+        """Returning pool data."""
+        return self.pool
+
+    def get_val_data(self) -> None:
+        """Returning val data."""
+        return self.val
+
+    def load_data(self, data_path: str) -> pd.DataFrame:
         # load data from path
         """
         Load data from the given file path.

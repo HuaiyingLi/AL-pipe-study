@@ -1,14 +1,14 @@
 """Run file for simulating experiments."""
 
 import argparse  # noqa: D100
-from al_pipe import ActivePipe
+from al_pipe.alpipe import ActivePipe
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--fb_strategy", type=str, default="Random")
 args = parser.parse_args()
 
-fb_strategy = args.strategy  # first batch strategy
+fb_strategy = args.fb_strategy  # first batch strategy
 
 interface = ActivePipe(weight_bias_track=True, exp_name=fb_strategy, device="cuda", seed=1)
 

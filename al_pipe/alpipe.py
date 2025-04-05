@@ -1,42 +1,36 @@
 """Main Class."""
 
-import numpy as np
-import torch
-
-# from al_pipe.util.data import Data
+from util.general import seed_all
+from al_pipe.util.data import Data
 
 
 class ActivePipe:  # noqa: D101
-    def __init__(self, exp_name="ActiveLearning", seed=1, run=1, num_cpus=4, device="cuda") -> None:
+    def __init__(self, path, dataset_name, exp_name="ActiveLearning", seed=1, num_cpus=4, device="cuda") -> None:  # noqa: D417
         """
         Initialize the ActivePipe class for active learning experiments.
 
         Args:
             exp_name (str, optional): Name of the experiment. Defaults to 'ActiveLearning'.
             seed (int, optional): Random seed for numpy. Defaults to 1.
-            run (int, optional): Random seed for PyTorch. Defaults to 1.
             num_cpus (int, optional): Number of CPU cores to use. Defaults to 4.
             device (str, optional): Device to run on ('cuda' or 'cpu'). Defaults to 'cuda'.
         """  # noqa: E501
+        # Setting vars
         self.device = device
-        np.random.seed(seed)
-        torch.manual_seed(run)
-        torch.backends.cudnn.enabled = False
-        use_cuda = torch.cuda.is_available()
-        self.device = torch.device(self.device if use_cuda else "cpu")
-        print("device: ", self.device)
+        self.exp_name = exp_name
+        self.path = path
+        self.dataset_name = dataset_name
+
+        # Seeding random states
+        seed_all(seed)
 
     def initialize_data(self):
-        """Initalizing data."""
-        # self.dataset = Data(path, dataset_name, batch_size, adata, test_fraction, self.seed, custom_test)
-        # self.test_data = self.dataset.get_test_data()
-        # self.dataset_name = dataset_name
-        # self.path = path
-        pass
+        """Initalizing data with Data object."""
+        self.dataset = Data(path=self.path, dataset_name=self.dataset_name, seed=self.seed)
+        self.test_data = self.dataset.get_test_data()
 
     def initialize_model(self):
         """Initialize model."""
-        pass
 
     def initialize_active_learning_strategy(self):
         """Initialize ALC."""
