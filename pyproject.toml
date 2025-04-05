@@ -25,7 +25,7 @@ dev = [
 
 [tool.ruff]
 # Set the maximum line length to 79.
-line-length = 79
+line-length = 120
 
 [tool.ruff.lint]
 # Add the `line-too-long` rule to the enforced rule set. By default, Ruff omits rules that
@@ -42,3 +42,9 @@ ignore=[
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+
+[tool.black]
+line-length = 120
+target-version = ['py313']
+include = '\.pyi?$'

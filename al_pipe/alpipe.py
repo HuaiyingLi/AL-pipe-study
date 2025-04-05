@@ -3,17 +3,11 @@
 import numpy as np
 import torch
 
+# from al_pipe.util.data import Data
 
 
 class ActivePipe:  # noqa: D101
-
-    def __init__(self,
-                 exp_name = 'ActiveLearning',
-                 seed = 1,
-                 run = 1,
-                 num_cpus = 4,
-                 device = 'cuda'
-                 ) -> None:
+    def __init__(self, exp_name="ActiveLearning", seed=1, run=1, num_cpus=4, device="cuda") -> None:
         """
         Initialize the ActivePipe class for active learning experiments.
 
@@ -30,18 +24,20 @@ class ActivePipe:  # noqa: D101
         torch.backends.cudnn.enabled = False
         use_cuda = torch.cuda.is_available()
         self.device = torch.device(self.device if use_cuda else "cpu")
-        print('device: ', self.device)
-        
-    def initialize_data():
-        self.dataset = Data(path, dataset_name, batch_size, adata, test_fraction, self.seed, custom_test)
-        self.test_data = self.dataset.get_test_data()
-        self.dataset_name = dataset_name
-        self.path = path
+        print("device: ", self.device)
 
-    def initialize_model():
+    def initialize_data(self):
+        """Initalizing data."""
+        # self.dataset = Data(path, dataset_name, batch_size, adata, test_fraction, self.seed, custom_test)
+        # self.test_data = self.dataset.get_test_data()
+        # self.dataset_name = dataset_name
+        # self.path = path
         pass
 
-    def initialize_active_learning_strategy():
+    def initialize_model(self):
+        """Initialize model."""
         pass
-    
-    def 
+
+    def initialize_active_learning_strategy(self):
+        """Initialize ALC."""
+        pass

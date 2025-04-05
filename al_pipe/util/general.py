@@ -1,8 +1,9 @@
 """General functions to help with the project making code neater."""
 
-import random  
+import random
 import numpy as np
 import torch
+
 
 def seed_all(seed):
     """
@@ -10,13 +11,13 @@ def seed_all(seed):
 
     Args:
         seed (int): The random seed value to use for all random number generators.
-    
+
     Returns:
         np.random.RandomState(0): random state from np lib could be used in sklearn
     """  # noqa: E501
     # https://scikit-learn.org/stable/common_pitfalls.html
     # TODO: account for the random state instance
-    
+
     if not seed:
         seed = 0
 
@@ -28,4 +29,3 @@ def seed_all(seed):
     np.random.seed(seed)
     random.seed(seed)
     return np.random.RandomState(0)
-    
