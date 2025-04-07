@@ -1,8 +1,7 @@
 """Onehot encoding class for data embedding."""
 
-import numpy as np
-from util.data import Data
-from util.general import avail_device
+import pandas as pd
+from al_pipe.util.general import avail_device, onehot_encode_dna
 
 
 class OneHot:
@@ -18,45 +17,25 @@ class OneHot:
         al_data (Data): Data object containing the dataset to be encoded
     """
 
-    def __init__(self, params, al_data: Data, device="cuda") -> None:  # noqa: D107
-        self.params = params
+    def __init__(self, sequence_data: pd.Series, device="cuda") -> None:  # noqa: D107
+        self.sequence_data = sequence_data
         self.device = avail_device(device)
 
-        self.al_data = al_data
-
-    def get_embeddings(self, al_data: Data = None) -> np.ndarray:
+    def get_embeddings(self) -> pd.Series:
         """
-        Generate one-hot encoded embeddings for a specified column in the data.
+        Generate one-hot encoded embeddings for DNA sequences.
 
-        Args:
-            al_data (Data, optional): The data object containing a pandas DataFrame.
-                                       If not provided, self.al_data is used.
-            TODO: write test for it
+        Converts each DNA sequence in self.sequence_data into a one-hot encoded tensor
+        representation using the onehot_encode_dna function.
 
         Returns:
-            np.ndarray: A 2D NumPy array with one-hot encoded data.
+            pd.Series: A pandas Series containing one-hot encoded tensors for each DNA sequence.
+                      Each tensor has shape (sequence_length, 4) where 4 represents the four
+                      possible nucleotides (A,C,G,T).
         """
-        # Use provided al_data or fall back to self.al_data
-        if al_data is None:
-            al_data = self.al_data
+        # TODO: stacking can be done later since they are of different length
 
-        # Could be more versitile for protein data as well
-        # TODO: need to add column_name to the dataset
-        # values = df[column_name]
-        values = 0
+        # # Convert the encoded series into a list of tensors, then stack them.
+        # encoded_tensor = torch.stack(encoded_series.tolist())
 
-        # Determine the unique categories and create a mapping.
-        categories = np.unique(values)
-        mapping = {cat: idx for idx, cat in enumerate(categories)}
-
-        # Map the values to indices.
-        # Here we assume that the column is a pandas Series, so we can use .map()
-        indices = values.map(mapping).to_numpy()
-
-        # Create a one-hot matrix: each row is the identity vector for that category.
-        one_hot_matrix = np.eye(len(categories), dtype=np.float32)
-
-        # Use the indices to pick the one-hot encoded rows.
-        embeddings = one_hot_matrix[indices]
-
-        return embeddings
+        return self.sequence_data.apply(onehot_encode_dna)

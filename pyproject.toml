@@ -42,6 +42,8 @@ extend-select = [
 ]
 ignore=[
     "D212", # white space after docstring
+    "D205", # 1 blank line between description and summary
+    "D105", # Missing docstring in magic method
 ]
 
 [tool.ruff.lint.pydocstyle]
