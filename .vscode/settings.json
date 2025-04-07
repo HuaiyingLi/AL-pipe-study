@@ -1,6 +1,0 @@
-{
-    "python.envFile": "${workspaceFolder}/.env",
-    "[python]": {
-        "editor.defaultFormatter": "charliermarsh.ruff"
-    },
-}

@@ -1,6 +1,6 @@
 """Main Class."""
 
-from util.general import seed_all
+from al_pipe.util.general import seed_all
 from al_pipe.util.data import Data
 
 
@@ -44,11 +44,11 @@ class ActivePipe:
         self.dataset = Data(
             path=self.path, dataset_name=self.dataset_name, embedding_mode=self.embedding_mode, seed=self.seed
         )
-
         # self.test_data = self.dataset.get_test_data()
 
     def initialize_model(self):
         """Initialize model."""
+        # self.model
 
     def initialize_active_learning_strategy(self):
         """Initialize ALC."""

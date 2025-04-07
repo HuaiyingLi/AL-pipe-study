@@ -73,14 +73,16 @@ class CustomSequenceDataset(Dataset):
         # torch.tensor(self.sequence_values["values"].to_numpy())
         self.device = avail_device(device)
         self.sequences_val_pair = data
-        self.sequences = self.sequence_values["sequences"]
-        self.values = torch.tensor(self.sequence_values["values"].to_numpy())
+        self.sequences = self.sequences_val_pair["sequences"]
+        self.values = torch.tensor(self.sequences_val_pair["values"].to_numpy())
         # TODO: account for different input later
         self.vocab_size = 4 if vocab_type == "DNA" else 20  # 4 for DNA nucleotides, 20 for amino acids
 
         if embedding_mode == "onehot":
             embedding_model = OneHot(self.sequences)
             self.embeded_sequences = embedding_model.get_embeddings()  # return pd.Series
+        else:
+            self.embeded_sequences = self.sequences
 
     def __len__(self) -> int:
         return len(self.embeded_sequences)
@@ -120,7 +122,9 @@ class Data:
         # get the input file
         self.data_path = os.path.join(path, data_name)
         self.batch_size = batch_size
-
+        self.data = {}
+        self.datasets = {}
+        self.data_splits = ["test", "train", "pool", "val"]
         # seed the program
         seeded_state = seed_all(seed)
 
@@ -128,29 +132,37 @@ class Data:
         data = load_data(self.data_path)
 
         # Split off the test set (e.g., 20% of the data)
-        data_remaining, self.test = train_test_split(data, test_size=0.2, random_state=seeded_state)
+        data_remaining, self.data["test"] = train_test_split(data, test_size=0.2, random_state=seeded_state)
 
         # 2. From the remaining data, split out the initial labeled data and the pool.  # noqa: E501
         # allocate 20% of the remaining data for an initial labeled set  # noqa: E501
         # (which we can later further split into training and validation) and 80% as the pool.  # noqa: E501
-        initial_labeled, self.pool = train_test_split(data_remaining, test_size=0.8, random_state=seeded_state)  # noqa: E501
+        initial_labeled, self.data["pool"] = train_test_split(data_remaining, test_size=0.8, random_state=seeded_state)  # noqa: E501
 
         # 3. Optionally, split the initial labeled set into a training set and a validation set.  # noqa: E501
         # For example, 80% training and 20% validation:
-        self.train, self.val = train_test_split(initial_labeled, test_size=0.2, random_state=seeded_state)  # noqa: E501
+        self.data["train"], self.data["val"] = train_test_split(
+            initial_labeled, test_size=0.2, random_state=seeded_state
+        )  # noqa: E501
 
-    def get_test_data_raw(self) -> None:
+        self.datasets = {split: CustomSequenceDataset(self.data[split]) for split in self.data_splits}
+
+    def get_datasets(self) -> CustomSequenceDataset:
+        """Returning a set of datasets."""
+        return self.datasets
+
+    def get_test_data(self) -> CustomSequenceDataset:
         """Returning test data as a CustomSequenceDataset."""
-        return CustomSequenceDataset(self.test)
+        return self.datasets["test"]
 
-    def get_train_data_raw(self) -> None:
+    def get_train_data(self) -> CustomSequenceDataset:
         """Returning train data as a CustomSequenceDataset."""
-        return CustomSequenceDataset(self.train)
+        return self.dataset["train"]
 
-    def get_pool_data_raw(self) -> None:
+    def get_pool_data(self) -> CustomSequenceDataset:
         """Returning pool data as a CustomSequenceDataset."""
-        return CustomSequenceDataset(self.pool)
+        return self.dataset["pool"]
 
-    def get_val_data_raw(self) -> None:
+    def get_val_data(self) -> CustomSequenceDataset:
         """Returning val data as a CustomSequenceDataset."""
-        return CustomSequenceDataset(self.val)
+        return self.dataset["val"]
