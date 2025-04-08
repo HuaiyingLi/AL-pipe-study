@@ -1,4 +1,4 @@
-"""Run file for simulating experiments."""
+"""CLI entry point for running experiments."""
 
 import argparse  # noqa: D100
 from al_pipe.alpipe import ActivePipe

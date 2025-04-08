@@ -18,7 +18,7 @@ import torch
 from al_pipe.util.general import avail_device, seed_all
 from torch.utils.data import Dataset
 
-from al_pipe.models.onehot import OneHot
+from al_pipe.embedding_models.static.onehot_embedding import OneHotEmbedding
 # TODO: add isort input sort basically
 
 
@@ -79,8 +79,8 @@ class CustomSequenceDataset(Dataset):
         self.vocab_size = 4 if vocab_type == "DNA" else 20  # 4 for DNA nucleotides, 20 for amino acids
 
         if embedding_mode == "onehot":
-            embedding_model = OneHot(self.sequences)
-            self.embeded_sequences = embedding_model.get_embeddings()  # return pd.Series
+            embedding_model = OneHotEmbedding(self.sequences)
+            self.embeded_sequences = embedding_model.embed_loaded_sequences()  # return pd.Series
         else:
             self.embeded_sequences = self.sequences
 

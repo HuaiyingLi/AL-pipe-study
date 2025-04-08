@@ -69,9 +69,8 @@ def validate_dna(seq: str) -> None:
         raise ValueError(f"Invalid characters in DNA sequence: {invalid}")
 
 
-def onehot_encode_dna(seq: str) -> torch.LongTensor:
+def onehot_encode_dna(seq: str) -> torch.Tensor:
     """Given DNA sequence input covert it to onehot encoded form."""
-    # TODO: could extend this to other sequence type
     if validate_dna(seq):
         # Convert the string into a NumPy array
         arr = np.array(list(seq))

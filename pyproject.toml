@@ -45,6 +45,10 @@ ignore=[
     "D212", # white space after docstring
     "D205", # 1 blank line between description and summary
     "D105", # Missing docstring in magic method
+    "D200", # 1 line docstring should fit in 1 line
+    "D107", # Missing docstring in `__init__` TODO: remove this later
+    "D102", # Missing docstring in public method TODO: remove this later
+
 ]
 
 [tool.ruff.lint.pydocstyle]
