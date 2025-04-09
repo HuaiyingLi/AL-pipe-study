@@ -3,7 +3,7 @@
 import pandas as pd
 
 from al_pipe.embedding_models.static.base_DNA_embedder import BaseStaticEmbedder
-from al_pipe.util.general import avail_device, onehot_encode_dna
+from al_pipe.util.general import onehot_encode_dna
 
 
 class OneHotEmbedding(BaseStaticEmbedder):
@@ -19,9 +19,8 @@ class OneHotEmbedding(BaseStaticEmbedder):
         al_data (Data): Data object containing the dataset to be encoded
     """
 
-    def __init__(self, sequence_data: pd.Series, device="cuda") -> None:  # noqa: D107
-        self.sequence_data = sequence_data
-        self.device = avail_device(device)
+    def __init__(self, sequence_data: pd.Series, device="cuda") -> None:
+        super().__init__(sequence_data, device)
 
     def embed_loaded_sequences(self) -> pd.Series:
         """
