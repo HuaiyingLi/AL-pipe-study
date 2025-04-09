@@ -1,12 +1,12 @@
 """Onehot encoding class for data embedding."""
 
 import pandas as pd
-import torch
-from al_pipe.embedding_models.static.base_DNA_embedder import BaseDNAEmbedder
+
+from al_pipe.embedding_models.static.base_DNA_embedder import BaseStaticEmbedder
 from al_pipe.util.general import avail_device, onehot_encode_dna
 
 
-class OneHotEmbedding(BaseDNAEmbedder):
+class OneHotEmbedding(BaseStaticEmbedder):
     """
     A class for one-hot encoding categorical data.
 
@@ -55,15 +55,3 @@ class OneHotEmbedding(BaseDNAEmbedder):
                       possible nucleotides (A,C,G,T).
         """
         return sequences.apply(onehot_encode_dna)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Forward pass of the one-hot embedding model.
-
-        Args:
-            x (torch.Tensor): Input tensor representing DNA sequences.
-
-        Returns:
-            torch.Tensor: One-hot encoded representation of the input DNA sequences.
-        """
-        return onehot_encode_dna(x)

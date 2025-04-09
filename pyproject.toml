@@ -33,6 +33,9 @@ dev = [
 # Set the maximum line length to 120.
 line-length = 120
 
+[tool.isort]
+line_length = 120
+
 [tool.ruff.lint]
 # Add the `line-too-long` rule to the enforced rule set. By default, Ruff omits rules that
 # overlap with the use of a formatter, like Black, but we can override this behavior by

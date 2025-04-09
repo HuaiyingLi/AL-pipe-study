@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 import pandas as pd
 
 
-class BaseDNAEmbedder(ABC):
+class BaseStaticEmbedder(ABC):
     """
     An abstract base class for all DNA embedding models.
     """
