@@ -1,0 +1,55 @@
+# config.yaml
+# Global settings
+device: "cuda"          # Use "cuda" if a GPU is available; otherwise "cpu"
+seed: 42                # Random seed for reproducibility
+
+# Dataset configuration: Adjust parameters to match your dataset format and file
+dataset:
+  data_path: "./dataset/random_promo"                      # Path to your DNA sequence file
+  data_name: "sub_sample_pTpA_All.csv"
+  params:
+    file_format: "csv"                      # File type: 'fasta', 'csv', etc.
+    delimiter: "\t"                         # Delimiter if applicable (for CSV)           # Example parameter; adjust as needed
+
+# Model configuration: which embedding model to use (static or trainable)
+model:
+  type: "OneHotEmbedder"                    # Options: "OneHotEmbedder", "LearnedDNAEmbedder", etc.
+
+# First-batch strategy: for selecting the initial subset of labeled samples
+first_batch:
+  type: "RandomFirstBatch"                  # For example, can be a random selection or a diversity-based strategy
+  params:
+    initial_ratio: 0.05                     # Use 5% of data as initial labeled set
+
+# Query strategy: for iterative active learning sampling
+query_strategy:
+  type: "RandomSampling"                    # For example, random sampling or uncertainty sampling
+  params:
+    k: 20                                   # Number of samples to acquire at each active learning iteration
+    uncertainty_threshold: 0.5              # (Optional) if using uncertainty-based methods
+
+# Labeling module: simulating or interfacing with an oracle to provide labels
+labeling:
+  type: "InSilicoLabeler"                   # Name of the class responsible for labeling
+  params:
+    label_path: "./dataset/random_promo"
+    label_name: "sub_sample_pTpA_All.csv"   # Path to a lookup table or source for ground-truth labels
+
+# Trainer configuration: settings used during the training loop
+trainer:
+  epochs: 10                                # Number of epochs per training iteration
+  learning_rate: 0.001                      # Learning rate for optimizer
+  optimizer: "Adam"                         # Optimizer to use, e.g., "Adam" (will be looked up in globals)
+
+# Evaluation configuration: specifies metrics and evaluation parameters
+evaluation:
+  metrics:
+    - "RMSE"                              # Root Mean Squared Error
+    - "MAE"                               # Mean Absolute Error
+  evaluation_batch_size: 32               # Batch size used during evaluation
+
+# Active Learning loop configuration: iterative acquisition settings
+active_learning:
+  initial_batch_size: 100                   # Initial number of labeled samples to start with
+  acquisition_batch_size: 10                # Number of samples to acquire in each AL iteration
+  iterations: 5                             # Number of active learning iterations

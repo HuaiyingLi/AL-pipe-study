@@ -12,14 +12,14 @@ Test the function on a small sample
 """  # noqa: D205
 
 import os
+
 import pandas as pd
-from sklearn.model_selection import train_test_split
 import torch
-from al_pipe.util.general import avail_device, seed_all
+from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset
 
-from al_pipe.embedding_models.static.onehot_embedding import OneHotEmbedding
-# TODO: add isort input sort basically
+from al_pipe.embedding_models.static.onehot_embedding import OneHotEmbedder
+from al_pipe.util.general import avail_device, seed_all
 
 
 def load_data(data_path: str) -> pd.DataFrame:
@@ -79,7 +79,7 @@ class CustomSequenceDataset(Dataset):
         self.vocab_size = 4 if vocab_type == "DNA" else 20  # 4 for DNA nucleotides, 20 for amino acids
 
         if embedding_mode == "onehot":
-            embedding_model = OneHotEmbedding(self.sequences)
+            embedding_model = OneHotEmbedder(self.sequences)
             self.embeded_sequences = embedding_model.embed_loaded_sequences()  # return pd.Series
         else:
             self.embeded_sequences = self.sequences

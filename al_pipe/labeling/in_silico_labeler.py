@@ -20,4 +20,4 @@ class InSilicoLabeler:
         self.ground_truth_data = load_data(os.path.join(path, data_name))
 
     def return_label(self, sequences: list[str] | list[torch.Tensor]) -> torch.Dataset:
-        pass
+        raise NotImplementedError()

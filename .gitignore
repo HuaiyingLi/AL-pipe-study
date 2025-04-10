@@ -11,3 +11,9 @@ wheels/
 
 # Vscode settings
 .vscode
+
+# Cursor rules
+.cursorrules
+
+# gears
+gears.py

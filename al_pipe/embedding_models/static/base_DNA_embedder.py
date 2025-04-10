@@ -29,7 +29,7 @@ class BaseStaticEmbedder(ABC):
             list[torch.Tensor]: List of torch tensors containing embedded representations
                 of the input DNA sequences
         """
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def embed_loaded_sequences(self) -> list[torch.Tensor]:
@@ -43,4 +43,4 @@ class BaseStaticEmbedder(ABC):
             list[torch.Tensor]: List of torch tensors containing embedded representations
                 of the loaded DNA sequences
         """
-        pass
+        raise NotImplementedError()

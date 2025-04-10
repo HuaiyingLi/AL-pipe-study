@@ -6,7 +6,7 @@ from al_pipe.embedding_models.static.base_DNA_embedder import BaseStaticEmbedder
 from al_pipe.util.general import onehot_encode_dna
 
 
-class OneHotEmbedding(BaseStaticEmbedder):
+class OneHotEmbedder(BaseStaticEmbedder):
     """
     A class for one-hot encoding categorical data.
 

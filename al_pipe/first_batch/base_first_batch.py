@@ -20,4 +20,4 @@ class FirstBatchStrategy(ABC):
         Returns:
             list[torch.Tensor]: A list of torch tensors selected as first batch.
         """
-        pass
+        raise NotImplementedError()

@@ -5,7 +5,7 @@ import torch
 from al_pipe.first_batch.base_first_batch import FirstBatchStrategy
 
 
-class RandomSelect(FirstBatchStrategy):
+class RandomFirstSelector(FirstBatchStrategy):
     """
     A strategy that randomly selects sequences for the first batch.
 

@@ -35,6 +35,8 @@ line-length = 120
 
 [tool.isort]
 line_length = 120
+ensure_newline_before_comments = true  # Ensures comments have a newline before them
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]  # Defines the order of import sections
 
 [tool.ruff.lint]
 # Add the `line-too-long` rule to the enforced rule set. By default, Ruff omits rules that
