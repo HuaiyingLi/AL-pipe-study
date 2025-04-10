@@ -17,7 +17,8 @@ model:
 
 # First-batch strategy: for selecting the initial subset of labeled samples
 first_batch:
-  type: "RandomFirstBatch"                  # For example, can be a random selection or a diversity-based strategy
+  type: "RandomFirstBatch"  
+  batch_size: 100                # For example, can be a random selection or a diversity-based strategy
   params:
     initial_ratio: 0.05                     # Use 5% of data as initial labeled set
 

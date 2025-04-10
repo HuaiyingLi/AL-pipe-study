@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 import pandas as pd
 import torch
 
-from al_pipe.util.general import avail_device
+from al_pipe.data.base_dataset import BaseDataset
 
 
 class BaseStaticEmbedder(ABC):
@@ -13,17 +13,19 @@ class BaseStaticEmbedder(ABC):
     An abstract base class for all DNA embedding models.
     """
 
-    def __init__(self, sequence_data: pd.Series, device="cuda") -> None:
-        self.sequence_data = sequence_data
+    def __init__(self, dataset: BaseDataset, device="cuda") -> None:
+        from al_pipe.util.general import avail_device
+
+        self.sequence_data = dataset
         self.device = avail_device(device)
 
     @abstractmethod
-    def embed_any_sequences(sequences: pd.Series) -> list[torch.Tensor]:
+    def embed_any_sequences(dataset: BaseDataset | pd.Series) -> list[torch.Tensor]:
         """
         Given a pd.Series of DNA sequences, return their embedding representations.
 
         Args:
-            sequences (pd.Series): Series containing DNA sequences to embed
+            dataset (BaseDataset | pd.Series): Dataset | pd.Series containing DNA sequences to embed
 
         Returns:
             list[torch.Tensor]: List of torch tensors containing embedded representations

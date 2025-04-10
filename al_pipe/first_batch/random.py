@@ -1,11 +1,14 @@
 """Random selection strategy for first batch."""
 
-import torch
+import numpy as np
 
+from torch.utils.data import DataLoader
+
+from al_pipe.data.base_dataset import BaseDataset
 from al_pipe.first_batch.base_first_batch import FirstBatchStrategy
 
 
-class RandomFirstSelector(FirstBatchStrategy):
+class RandomFirstBatch(FirstBatchStrategy):
     """
     A strategy that randomly selects sequences for the first batch.
 
@@ -14,18 +17,25 @@ class RandomFirstSelector(FirstBatchStrategy):
     pipeline.
     """
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, dataset: BaseDataset, batch_size: int) -> None:
+        super().__init__(dataset, batch_size)
 
-    def select_first_batch(self, sequences: list[torch.Tensor]) -> list[torch.Tensor]:
+    def select_first_batch(self, dataset: BaseDataset) -> tuple[DataLoader, DataLoader]:
         """
         Randomly select sequences for the first batch.
 
+        This method selects a random subset of sequences from the provided dataset
+        to form the initial training batch for the active learning process.
+
         Args:
-            sequences (list[torch.Tensor]): List of sequences to select from
+            dataset (BaseDataset): The dataset from which to select sequences.
 
         Returns:
-            list[torch.Tensor]: Randomly selected subset of sequences for first batch
+            tuple[DataLoader, DataLoader]: A tuple of two DataLoaders, one for the training batch
+            and one for the unlabeled data.
         """
-        indices = torch.randperm(len(sequences))[: self.batch_size]
-        return [sequences[i] for i in indices]
+        indices = np.random.choice(len(dataset), self.batch_size, replace=False)
+        first_batch_loader = DataLoader(dataset[indices], batch_size=self.batch_size, shuffle=True)
+        pool_loader = DataLoader(dataset[~indices], batch_size=self.batch_size, shuffle=False)
+
+        return first_batch_loader, pool_loader

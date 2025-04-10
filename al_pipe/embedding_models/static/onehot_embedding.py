@@ -2,8 +2,8 @@
 
 import pandas as pd
 
-from al_pipe.embedding_models.static.base_DNA_embedder import BaseStaticEmbedder
-from al_pipe.util.general import onehot_encode_dna
+from al_pipe.data.base_dataset import BaseDataset
+from al_pipe.embedding_models.static.base_static_embedder import BaseStaticEmbedder
 
 
 class OneHotEmbedder(BaseStaticEmbedder):
@@ -19,8 +19,8 @@ class OneHotEmbedder(BaseStaticEmbedder):
         al_data (Data): Data object containing the dataset to be encoded
     """
 
-    def __init__(self, sequence_data: pd.Series, device="cuda") -> None:
-        super().__init__(sequence_data, device)
+    def __init__(self, dataset: BaseDataset, device="cuda") -> None:
+        super().__init__(dataset, device)
 
     def embed_loaded_sequences(self) -> pd.Series:
         """
@@ -38,6 +38,7 @@ class OneHotEmbedder(BaseStaticEmbedder):
 
         # # Convert the encoded series into a list of tensors, then stack them.
         # encoded_tensor = torch.stack(encoded_series.tolist())
+        from al_pipe.util.general import onehot_encode_dna
 
         return self.sequence_data.apply(onehot_encode_dna)
 
@@ -53,4 +54,6 @@ class OneHotEmbedder(BaseStaticEmbedder):
                       Each tensor has shape (sequence_length, 4) where 4 represents the four
                       possible nucleotides (A,C,G,T).
         """
+        from al_pipe.util.general import onehot_encode_dna
+
         return sequences.apply(onehot_encode_dna)

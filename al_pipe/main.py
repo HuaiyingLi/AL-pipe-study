@@ -9,10 +9,9 @@ import torch
 import yaml
 
 # Import data handling and modules
-from al_pipe.data.base_dataset import BaseDataset  # dataset class
+from al_pipe.data.dna_dataset import DNADataset  # dataset class
 
 # Import models – here we assume model types are embedding models
-from al_pipe.embedding_models.static.base_DNA_embedder import BaseDNAEmbedder
 from al_pipe.evaluation.evaluator import Evaluator
 
 # Import first batch and query strategies
@@ -26,7 +25,13 @@ from al_pipe.queries.base_strategy import BaseQueryStrategy
 from al_pipe.training.trainer import Trainer
 
 # Import common utility functions
-from al_pipe.util.general import avail_device, seed_all
+from al_pipe.util.general import (
+    avail_device,
+    initialize_first_batch_strategy,
+    initialize_model,
+    initialize_query_strategy,
+    seed_all,
+)
 
 
 def main() -> None:
@@ -53,7 +58,7 @@ def main() -> None:
     parser.add_argument(
         "--config",
         type=str,
-        default="configs/config.yaml",
+        default="configs/example.yaml",
         help="Path to YAML configuration file",
     )
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
@@ -74,33 +79,25 @@ def main() -> None:
     # ==========================
     # Assume dataset configuration specifies a file location and parameters needed by your dataset class.
     dataset_config = config["dataset"]
-    # This BaseDataset should be implemented to load DNA sequences, possibly from a CSV/fasta etc.
-    dataset = BaseDataset(dataset_config["data_path"], **dataset_config.get("params", {}))
+    # This DNADataset should be implemented to load DNA sequences, possibly from a CSV/fasta etc.
+    dataset = DNADataset(dataset_config["data_path"], dataset_config["data_name"], **dataset_config.get("params", {}))
 
     # ==========================
-    # 5. Instantiate the Embedding Model
+    # 5. Instantiate the Static Embedding Model
     # ==========================
     model_config = config["model"]
-    # Use globals() or a factory to select the proper model
-    model_cls = globals()[model_config["type"]]
-    model: BaseDNAEmbedder = model_cls(sequence_data=dataset.sequences, **model_config.get("params", {}))
-    model.to(device)
+    model = initialize_model(model_config, dataset)
 
     # ==========================
     # 6. Set Up Active Learning Components
     # ==========================
     # First-Batch Strategy: to select an initial batch
     first_batch_config = config.get("first_batch", {})
-    if first_batch_config:
-        fb_cls = globals()[first_batch_config["type"]]
-        first_batch_strategy: FirstBatchStrategy = fb_cls(**first_batch_config.get("params", {}))
-    else:
-        first_batch_strategy = None
+    first_batch_strategy: FirstBatchStrategy = initialize_first_batch_strategy(first_batch_config, dataset)
 
     # Query Strategy: for iterative selection of samples
     query_config = config["query_strategy"]
-    qs_cls = globals()[query_config["type"]]
-    query_strategy: BaseQueryStrategy = qs_cls(**query_config.get("params", {}))
+    query_strategy: BaseQueryStrategy = initialize_query_strategy(query_config, dataset)
 
     # Labeling Module: simulation of an oracle to provide labels
     labeling_config = config["labeling"]

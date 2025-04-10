@@ -24,6 +24,14 @@ class DNADataset(BaseDataset):
         """
         return load_data(self.data_path)
 
+    def get_sequences(self) -> pd.Series:
+        """Get the sequences from the dataset.
+
+        Returns:
+            pd.Series: A pandas Series containing the sequences from the dataset.
+        """
+        return self.data["sequences"]
+
     def __len__(self) -> int:
         return len(self.data)
 
