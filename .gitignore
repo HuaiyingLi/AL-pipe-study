@@ -15,5 +15,5 @@ wheels/
 # Cursor rules
 .cursorrules
 
-# gears
-gears.py
+# output folders
+output/

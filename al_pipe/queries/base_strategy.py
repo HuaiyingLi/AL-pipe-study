@@ -3,7 +3,6 @@
 from abc import ABC, abstractmethod
 
 import torch
-from pyparsing import Optional
 
 '''
 class SelectionMethod:
@@ -58,12 +57,3 @@ class BaseQueryStrategy(ABC):
             List of indices of selected samples from unlabeled pool
         """
         raise NotImplementedError()
-
-    @abstractmethod
-    def get_status(self) -> Optional:
-        """
-        :return: Returns an object representing the status of the selection. If all went well, the method returns None.
-        Otherwise, it might return a string or something different representing an error that occured.
-        This is mainly useful for analyzing a lot of experiment runs.
-        """
-        return self.status

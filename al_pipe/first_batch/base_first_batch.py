@@ -18,7 +18,7 @@ class FirstBatchStrategy(ABC):
         self.batch_size = batch_size
 
     @abstractmethod
-    def select_initial_samples(self) -> list[torch.Tensor]:
+    def select_first_batch(self) -> list[torch.Tensor]:
         """
         Given a pd.Series of initial set of sequence input, return an subset
         of sequences as the first batch of training input.

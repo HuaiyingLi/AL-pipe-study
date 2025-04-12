@@ -169,3 +169,11 @@ def initialize_query_strategy(query_config: dict, dataset: BaseDataset) -> BaseQ
         return RandomQueryStrategy(dataset, query_config["batch_size"])
     else:
         raise ValueError(f"Query strategy class {query_config['type']} is not supported.")
+
+
+# def initialize_labeler(labeler_config: dict) -> BaseLabeler:
+#     """Initialize a labeler based on the labeler configuration."""
+#     if labeler_config["type"] == "InSilicoLabeler":
+#         return InSilicoLabeler(labeler_config["path"], labeler_config["data_name"])
+#     else:
+#         raise ValueError(f"Labeler class {labeler_config['type']} is not supported.")

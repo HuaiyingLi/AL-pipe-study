@@ -27,10 +27,12 @@ class RandomQueryStrategy(BaseQueryStrategy):
             batch_size (int): Number of samples to select in each query.
         """
         super().__init__()
+        # TODO: what kind of datasets are we importing
+        self.dataset = dataset
         self.batch_size = batch_size
 
     # TODO: First thing tommorow finish this bit of code
-    def select_samples(self, model: torch.nn.Module, unlabeled_data: list[torch.Tensor], batch_size: int) -> list[int]:
+    def select_samples(self, model: torch.nn.Module, unlabeled_data: BaseDataset, batch_size: int) -> list[int]:
         """
         Select samples from the unlabeled pool for labeling.
 
@@ -46,6 +48,7 @@ class RandomQueryStrategy(BaseQueryStrategy):
             raise ValueError("Batch size cannot be greater than the number of unlabeled samples.")
 
         selected_indices = random.sample(range(len(unlabeled_data)), batch_size)
+
         return selected_indices
 
     def get_status(self) -> None:
