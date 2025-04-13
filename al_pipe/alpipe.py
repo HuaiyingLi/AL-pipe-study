@@ -1,7 +1,7 @@
 """Main Class."""
 
-from al_pipe.util.general import seed_all
 from al_pipe.util.data import Data
+from al_pipe.util.general import seed_all
 
 
 class ActivePipe:

@@ -1,0 +1,18 @@
+# @package _global_
+
+defaults:
+  - _self_ # setting composition order
+  - datasets: random_promo_pTpA
+  - model: one_hot
+  - evaluator: default
+  - first_batch: random
+  - labeling: default
+  - query: random
+  - logger: wandb
+  - paths: default
+  - hydra: default
+  - trainer: default
+
+task_name: "test_run"
+device: "cpu"
+seed: 42

@@ -17,3 +17,13 @@ wheels/
 
 # output folders
 output/
+
+# clear logs
+logs/
+*.log
+*.log.*
+*.log.*.*
+*.log.*.*.*
+*.log.*.*.*.*
+*.log.*.*.*.*.*
+*.log.*.*.*.*.*.*

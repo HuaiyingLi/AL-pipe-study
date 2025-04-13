@@ -149,8 +149,8 @@ def print_sys_stderr(s: str) -> None:
 
 def initialize_model(model_config: dict, dataset: BaseDataset) -> BaseStaticEmbedder:
     """Initialize a model based on the model configuration."""
-    if model_config["type"] == "OneHotEmbedder":
-        return OneHotEmbedder(dataset)
+    if model_config["name"] == "OneHotEmbedder" and model_config["type"] == "static":
+        return OneHotEmbedder(dataset, model_config["device"])
     else:
         raise ValueError(f"Model class {model_config['type']} must inherit from BaseStaticEmbedder")
 

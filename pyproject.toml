@@ -20,12 +20,15 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
+    "hydra-colorlog>=1.2.0",
     "hydra-core>=1.3.2",
     "isort>=6.0.1",
+    "lightning>=2.5.1",
     "pandas>=2.2.3",
     "pyparsing>=3.2.3",
     "pytest>=8.3.5",
     "pytest-cov>=6.1.0",
+    "python-dotenv>=1.1.0",
     "ruff>=0.11.3",
     "scikit-learn>=1.6.1",
     "wandb>=0.19.9",

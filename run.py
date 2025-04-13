@@ -1,8 +1,8 @@
 """CLI entry point for running experiments."""
 
 import argparse  # noqa: D100
-from al_pipe.alpipe import ActivePipe
 
+from al_pipe.alpipe import ActivePipe
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--fb_strategy", type=str, default="Random")

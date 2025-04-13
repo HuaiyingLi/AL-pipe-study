@@ -1,8 +1,10 @@
 """Test file for util.general."""
 
 import random
+
 import numpy as np
 import torch
+
 from al_pipe.util.data import seed_all
 
 

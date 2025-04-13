@@ -14,6 +14,7 @@ class InSilicoLabeler:
     This class provides functionality to generate labels for DNA sequences in silico,
     acting as a simulated oracle in an active learning pipeline. It can be used to
     evaluate active learning strategies without requiring real experimental validation.
+    TODO: This loads all the data might be ways to optimize this.
     """
 
     def __init__(self, path: str, data_name: str) -> None:

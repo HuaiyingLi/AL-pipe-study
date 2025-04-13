@@ -1,0 +1,2 @@
+path: ${paths.data_dir}/${datasets.data_path}
+data_name: ${datasets.data_name}

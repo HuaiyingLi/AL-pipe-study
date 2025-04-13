@@ -1,0 +1,2 @@
+type: "RandomFirstBatch"
+batch_size: 32

@@ -1,7 +1,7 @@
 """Test embedding models."""
 
-import pytest
 import pandas as pd
+import pytest
 
 
 @pytest.fixture
