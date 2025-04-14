@@ -9,8 +9,16 @@ from al_pipe.util.data import load_data
 class DNADataset(BaseDataset):
     """Dataset for DNA data."""
 
-    def __init__(self, data_path: str, data_name: str, **kwargs) -> None:
-        super().__init__(data_path, data_name, **kwargs)
+    def __init__(
+        self,
+        data_path: str,
+        data_name: str,
+        batch_size: int,
+        train_val_test_pool_split: list[float],
+        num_workers: int,
+        pin_memory: bool,
+    ) -> None:
+        super().__init__(data_path, data_name, batch_size, train_val_test_pool_split, num_workers, pin_memory)
         self.data = self._load_data()
 
     def _load_data(self) -> pd.DataFrame:

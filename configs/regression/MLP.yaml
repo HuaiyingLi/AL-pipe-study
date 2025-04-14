@@ -1,0 +1,8 @@
+# configs/regression/MLP.yaml
+
+_target_: al_pipe.regession.mlp
+sizes: [64, 32, 16, 1]
+learning_rate: 0.001
+batch_norm: true
+last_layer_act: "ReLU"
+weight_decay: 0.0

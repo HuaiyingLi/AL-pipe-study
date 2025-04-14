@@ -12,22 +12,36 @@ from torch.utils.data import Dataset
 class BaseDataset(Dataset, ABC):
     """Abstract base class for dataset."""
 
-    def __init__(self, data_path: str, data_name: str, **kwargs) -> None:
+    def __init__(
+        self,
+        data_path: str,
+        data_name: str,
+        batch_size: int,
+        train_val_test_pool_split: list[float],
+        num_workers: int,
+        pin_memory: bool,
+    ) -> None:
         """
         Initialize the dataset.
         """
+        super().__init__()
         self.data_path = os.path.join(data_path, data_name)
-        self.transform = kwargs.get("transform", None)
+        self.batch_size = batch_size
+        self.train_val_test_pool_split = train_val_test_pool_split
+        self.num_workers = num_workers
+        self.pin_memory = pin_memory
 
     @abstractmethod
     def _load_data(self) -> list[torch.Tensor]:
         """Load data from the data path."""
         raise NotImplementedError()
 
-    def __len__(self) -> int:
-        """Return the length of the dataset."""
-        raise NotImplementedError()
+    # @abstractmethod
+    # def get_subset(self, indices: list[int]) -> "BaseDataset":
+    #     """Return a subset of the dataset."""
+    #     raise NotImplementedError()
 
-    def __getitem__(self, index: int) -> torch.Tensor:
-        """Return the item at the given index."""
-        raise NotImplementedError()
+    def delete(self, indices: list[int]) -> None:
+        """Delete the items at the given indices."""
+        for index in sorted(indices, reverse=True):
+            del self.data[index]

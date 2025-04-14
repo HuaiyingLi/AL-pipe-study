@@ -1,0 +1,5 @@
+# @package _global_
+
+al_iterations: 5
+
+acquisition_batch_size: 32

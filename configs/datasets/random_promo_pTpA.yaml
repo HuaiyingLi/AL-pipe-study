@@ -1,2 +1,6 @@
 data_path : "random_promo/" # no need for the first forward slash
 data_name : "sub_sample_pTpA_All.csv" 
+batch_size: 32 # Needs to be divisible by the number of devices (e.g., if in a distributed setup)
+train_val_test_pool_split: [0.2, 0.1, 0.1, 0.6] 
+num_workers: 0
+pin_memory: False

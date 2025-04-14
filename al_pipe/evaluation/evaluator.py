@@ -1,18 +1,20 @@
 """Evaluator module for assessing model performance during active learning.
 
 This module provides functionality to evaluate embedding models during the active learning
-process, tracking various metrics like loss, accuracy, and other relevant performance indicators.
+process using PyTorch Lightning, tracking various metrics like loss, accuracy, and other
+relevant performance indicators.
 """
 
+import pytorch_lightning as pl
 import torch
+import torchmetrics
 
-from torch.utils.data import DataLoader
-
+from al_pipe.data.base_dataset import BaseDataset
 from al_pipe.embedding_models.static.base_static_embedder import BaseStaticEmbedder
 from al_pipe.util.general import avail_device
 
 
-class Evaluator:
+class Evaluator(pl.LightningModule):
     """Evaluator class for assessing model performance during active learning iterations."""
 
     def __init__(
@@ -29,39 +31,58 @@ class Evaluator:
             batch_size: Batch size for evaluation.
             device: Device to run evaluation on ('cuda' or 'cpu').
         """
-        self.metrics = metrics or {"mse": torch.nn.MSELoss()}
+        super().__init__()
         self.batch_size = batch_size
         self.device = avail_device(device)
 
-    def evaluate(self, model: BaseStaticEmbedder, dataset: any) -> dict[str, float]:
-        """Evaluate the model on the given dataset.
+        # Initialize metrics using torchmetrics
+        self.metrics = (
+            torch.nn.ModuleDict(
+                {
+                    "mse": torchmetrics.MeanSquaredError(),
+                    "mae": torchmetrics.MeanAbsoluteError(),
+                    "r2": torchmetrics.R2Score(),
+                }
+            )
+            if metrics is None
+            else metrics
+        )
+
+        # Save hyperparameters
+        self.save_hyperparameters(ignore=["metrics"])
+
+    def evaluate(
+        self, embed_model: BaseStaticEmbedder, model: torch.nn.Module, dataloader: BaseDataset
+    ) -> dict[str, float]:
+        """Evaluate model performance on a dataset.
 
         Args:
-            model: The embedding model to evaluate.
-            dataset: Dataset to evaluate on.
+            embed_model: Model to generate sequence embeddings
+            model: Model to evaluate predictions
+            dataloader: DataLoader to evaluate on
 
         Returns:
-            Dictionary containing computed metrics.
+            Dictionary mapping metric names to their computed values
         """
-        model.eval()  # Set model to evaluation mode
-        dataloader = DataLoader(dataset, batch_size=self.batch_size, shuffle=False)
-
+        # Configure evaluation
+        model.eval()
         results = {}
+
+        # Evaluate batches
         with torch.no_grad():
-            for metric_name, metric_fn in self.metrics.items():
-                total_metric = 0.0
-                num_batches = 0
+            for sequences, values in dataloader:
+                # Generate embeddings and predictions
+                embeddings = embed_model.embed_any_sequences(sequences)
+                predictions = model(embeddings)
 
-                for batch in dataloader:
-                    # Assuming batch contains sequences and values
-                    sequences, values = batch
-                    embeddings = model.embed_any_sequences(sequences)
+                # Update metrics
+                values = values.to(self.device)
+                for metric in self.metrics.values():
+                    metric.update(predictions, values)
 
-                    # Compute metric
-                    metric_value = metric_fn(embeddings, values.to(self.device))
-                    total_metric += metric_value.item()
-                    num_batches += 1
-
-                results[metric_name] = total_metric / num_batches
+            # Compute final metrics
+            for name, metric in self.metrics.items():
+                results[name] = metric.compute().item()
+                metric.reset()
 
         return results

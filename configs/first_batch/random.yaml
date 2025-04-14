@@ -1,2 +1,5 @@
 type: "RandomFirstBatch"
-batch_size: 32
+data_size:
+  train: 128
+  test: 32 # TODO: How to get a good representation this testset
+  val: 32 # TODO: How to get a good validation representation

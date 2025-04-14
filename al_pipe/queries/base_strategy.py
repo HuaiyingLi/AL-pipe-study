@@ -4,6 +4,8 @@ from abc import ABC, abstractmethod
 
 import torch
 
+from al_pipe.data_loader import BaseDataLoader
+
 '''
 class SelectionMethod:
     """
@@ -44,7 +46,7 @@ class BaseQueryStrategy(ABC):
     """
 
     @abstractmethod
-    def select_samples(self, model: torch.nn.Module, unlabeled_data: list[torch.Tensor], batch_size: int) -> list[int]:
+    def select_samples(self, model: torch.nn.Module, pool_loader: BaseDataLoader, batch_size: int) -> list[int]:
         """
         Select samples from unlabeled pool for labeling.
 

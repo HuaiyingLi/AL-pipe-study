@@ -5,6 +5,7 @@ import random
 import torch
 
 from al_pipe.data.base_dataset import BaseDataset
+from al_pipe.data_loader import BaseDataLoader
 from al_pipe.queries.base_strategy import BaseQueryStrategy
 
 
@@ -32,7 +33,7 @@ class RandomQueryStrategy(BaseQueryStrategy):
         self.batch_size = batch_size
 
     # TODO: First thing tommorow finish this bit of code
-    def select_samples(self, model: torch.nn.Module, unlabeled_data: BaseDataset, batch_size: int) -> list[int]:
+    def select_samples(self, model: torch.nn.Module, pool_loader: BaseDataLoader, batch_size: int) -> list[int]:
         """
         Select samples from the unlabeled pool for labeling.
 
@@ -44,10 +45,13 @@ class RandomQueryStrategy(BaseQueryStrategy):
         Returns:
             List of indices of selected samples from unlabeled pool.
         """
-        if batch_size > len(unlabeled_data):
+        if batch_size > len(pool_loader):
             raise ValueError("Batch size cannot be greater than the number of unlabeled samples.")
+        else:
+            selected_indices = random.sample(range(len(pool_loader)), batch_size)
 
-        selected_indices = random.sample(range(len(unlabeled_data)), batch_size)
+        # update the pool loader
+        pool_loader.update_pool_dataset(selected_indices, action_type="remove")
 
         return selected_indices
 

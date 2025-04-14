@@ -15,10 +15,13 @@ from al_pipe.labeling.in_silico_labeler import InSilicoLabeler
 from al_pipe.training.trainer import Trainer
 from al_pipe.util.general import (
     avail_device,
+    seed_all,
+)
+from al_pipe.util.init import (
+    initialize_evaluator,
     initialize_first_batch_strategy,
     initialize_model,
     initialize_query_strategy,
-    seed_all,
 )
 
 # Import data handling and modules
@@ -75,7 +78,14 @@ def main(cfg: DictConfig) -> None:
     # # 2. Prepare the Dataset
     # # ==========================
     # # This DNADataset should be implemented to load DNA sequences, possibly from a CSV/fasta etc.
-    dataset = DNADataset(os.path.join(cfg.paths.data_dir, cfg.datasets.data_path), cfg.datasets.data_name)
+    dataset = DNADataset(
+        os.path.join(cfg.paths.data_dir, cfg.datasets.data_path),
+        cfg.datasets.data_name,
+        batch_size=cfg.datasets.batch_size,
+        train_val_test_pool_split=cfg.datasets.train_val_test_pool_split,
+        num_workers=cfg.datasets.num_workers,
+        pin_memory=cfg.datasets.pin_memory,
+    )
     # os.path.join(cfg.paths.data_dir, cfg.datasets.data_path, cfg.datasets.data_name),
     # **(cfg.datasets.params or {}) #If more params are needed
 
@@ -85,7 +95,8 @@ def main(cfg: DictConfig) -> None:
     # TODO: what is the type of cfg.model?
     model = initialize_model(cfg.model, dataset)
     print(model)
-
+    regressor = hydra.utils.instantiate(cfg.regression)
+    print(regressor)
     # # ==========================
     # # 4. Set Up Active Learning Components
     # # ==========================
@@ -97,7 +108,7 @@ def main(cfg: DictConfig) -> None:
     print(query_strategy)
 
     # Labeling Module: simulation of an oracle to provide labels
-    labeler = InSilicoLabeler(cfg.labeling.path, cfg.labeling.data_name)
+    labeler: InSilicoLabeler = InSilicoLabeler(cfg.labeling.path, cfg.labeling.data_name)
     print(labeler)
 
     # # ==========================
@@ -120,52 +131,53 @@ def main(cfg: DictConfig) -> None:
     # # ==========================
     # # 6. Active Learning Loop
     # # ==========================
-    # # Initially, use the first-batch strategy (or a default random split) to select the starting labeled set.
-    # if first_batch_strategy is not None:
-    #     labeled_idxs, unlabeled_idxs = first_batch_strategy.select_initial_samples(
-    #         dataset, cfg.active_learning.initial_batch_size
-    #     )
-    # else:
-    #     # Default: randomly select a fixed number for the initial training set.
-    #     total_samples = len(dataset)
-    #     labeled_idxs = torch.randperm(total_samples)[: cfg.active_learning.initial_batch_size].tolist()
-    #     unlabeled_idxs = [i for i in range(total_samples) if i not in labeled_idxs]
+    # Initially, use the first-batch strategy (or a default random split) to select the starting labeled set.
+    if first_batch_strategy is not None:
+        first_batch_loader, test_batch_loader, val_batch_loader, pool_loader = first_batch_strategy.select_first_batch(
+            dataset=dataset, batch_size=cfg.first_batch.batch_size
+        )
+    else:
+        raise ValueError("First batch strategy is not set")
 
     # # Convert indices to dataset splits (this assumes your dataset supports indexing)
     # labeled_data = dataset.get_subset(labeled_idxs)
     # unlabeled_data = dataset.get_subset(unlabeled_idxs)
 
-    # # Run the iterative Active Learning loop for a fixed number of iterations
-    # n_iterations = cfg.active_learning.iterations
-    # acquisition_batch_size = cfg.active_learning.acquisition_batch_size
+    evaluator = initialize_evaluator(model, device)
+    # Run the iterative Active Learning loop for a fixed number of iterations
+    n_iterations = cfg.active_learning.al_iterations
+    acquisition_batch_size = cfg.active_learning.acquisition_batch_size
 
-    # for iteration in range(n_iterations):
-    #     print(f"\n=== Active Learning Iteration {iteration + 1}/{n_iterations} ===")
+    train_loader = first_batch_loader
+    for iteration in range(n_iterations):
+        print(f"\n=== Active Learning Iteration {iteration + 1}/{n_iterations} ===")
 
-    #     # Train the model on the current labeled data
-    #     trainer.train(labeled_data)
+        # Train the model on the current labeled data
+        trainer.train(train_loader, test_batch_loader, val_batch_loader)
 
-    #     # Evaluate on unlabeled pool and/or validation set if available
-    #     metrics = evaluator.evaluate(model, labeled_data)
-    #     print(f"Evaluation metrics: {metrics}")
+        # Evaluate on unlabeled pool and/or validation set if available
+        metrics = evaluator.evaluate(model, regressor, dataset)
+        print(f"Evaluation metrics: {metrics}")
 
-    #     # Use the query strategy to select new samples from unlabeled_data
-    #     queried_idxs = query_strategy.select_samples(model, unlabeled_data, batch_size=acquisition_batch_size)
+        # Use the query strategy to select new samples from unlabeled_data
+        queried_idxs = query_strategy.select_samples(model, pool_loader, batch_size=acquisition_batch_size)
 
-    #     # Query the labeling module (simulated oracle) to obtain ground truth labels for selected samples
-    #     new_labeled_data = labeler.label(unlabeled_data, queried_idxs)
+        # Query the labeling module (simulated oracle) to obtain ground truth labels for selected samples
+        new_labeled_data = labeler.label(pool_loader, queried_idxs)
 
-    #     # Update the labeled set and remove newly labeled indices from the unlabeled pool
-    #     labeled_data.add(new_labeled_data)
-    #     unlabeled_data.remove(queried_idxs)
+        # Update the labeled set and remove newly labeled indices from the unlabeled pool
+        # By appending, we essentially mean training on all the data
+        train_loader.update_train_dataset(queried_idxs, new_labels=new_labeled_data, mode="append")
 
-    #     # Optionally, save checkpoints, log results, or adjust hyperparameters here
+        pool_loader.update_pool_dataset(queried_idxs, mode="remove")
 
-    # # ==========================
-    # # 7. Final Evaluation
-    # # ==========================
-    # final_metrics = evaluator.evaluate(model, dataset)
-    # print("Final evaluation metrics:", final_metrics)
+        # Optionally, save checkpoints, log results, or adjust hyperparameters here
+
+    # ==========================
+    # 7. Final Evaluation
+    # ==========================
+    final_metrics = evaluator.evaluate(model, dataset)
+    print("Final evaluation metrics:", final_metrics)
 
 
 if __name__ == "__main__":

@@ -12,7 +12,9 @@ defaults:
   - paths: default
   - hydra: default
   - trainer: default
+  - regression: MLP
 
 task_name: "test_run"
 device: "cpu"
 seed: 42
+al_iterations: 5

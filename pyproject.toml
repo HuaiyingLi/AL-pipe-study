@@ -69,6 +69,7 @@ ignore=[
     "D200", # 1 line docstring should fit in 1 line
     "D107", # Missing docstring in `__init__` TODO: remove this later
     "D102", # Missing docstring in public method TODO: remove this later
+    "D417", # Missing docstring in class TODO: remove this later
 
 ]
 

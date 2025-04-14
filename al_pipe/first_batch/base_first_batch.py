@@ -10,10 +10,9 @@ from al_pipe.data.base_dataset import BaseDataset
 class FirstBatchStrategy(ABC):
     """
     An abstract base class for different first batch strategies.
-    TODO: whether we need a constructor?
     """
 
-    def __init__(self, dataset: BaseDataset, batch_size: int) -> None:
+    def __init__(self, dataset: BaseDataset, batch_size: dict[str, int]) -> None:
         self.dataset = dataset
         self.batch_size = batch_size
 
