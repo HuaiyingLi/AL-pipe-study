@@ -15,10 +15,8 @@ class DNADataset(BaseDataset):
         data_name: str,
         batch_size: int,
         train_val_test_pool_split: list[float],
-        num_workers: int,
-        pin_memory: bool,
     ) -> None:
-        super().__init__(data_path, data_name, batch_size, train_val_test_pool_split, num_workers, pin_memory)
+        super().__init__(data_path, data_name, batch_size, train_val_test_pool_split)
         self.data = self._load_data()
 
     def _load_data(self) -> pd.DataFrame:

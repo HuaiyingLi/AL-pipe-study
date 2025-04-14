@@ -5,7 +5,7 @@ import random
 import torch
 
 from al_pipe.data.base_dataset import BaseDataset
-from al_pipe.data_loader import BaseDataLoader
+from al_pipe.data_loader import base_data_loader
 from al_pipe.queries.base_strategy import BaseQueryStrategy
 
 
@@ -33,7 +33,7 @@ class RandomQueryStrategy(BaseQueryStrategy):
         self.batch_size = batch_size
 
     # TODO: First thing tommorow finish this bit of code
-    def select_samples(self, model: torch.nn.Module, pool_loader: BaseDataLoader, batch_size: int) -> list[int]:
+    def select_samples(self, model: torch.nn.Module, pool_loader: base_data_loader, batch_size: int) -> list[int]:
         """
         Select samples from the unlabeled pool for labeling.
 

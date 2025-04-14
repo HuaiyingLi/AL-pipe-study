@@ -7,7 +7,7 @@ from al_pipe.embedding_models.static.base_static_embedder import BaseStaticEmbed
 from al_pipe.embedding_models.static.onehot_embedding import OneHotEmbedder
 from al_pipe.evaluation.evaluator import Evaluator
 from al_pipe.first_batch.base_first_batch import FirstBatchStrategy
-from al_pipe.first_batch.random import RandomFirstBatch
+from al_pipe.first_batch.random_first_batch import RandomFirstBatch
 from al_pipe.queries.base_strategy import BaseQueryStrategy
 from al_pipe.queries.random_sampling import RandomQueryStrategy
 
@@ -23,7 +23,7 @@ def initialize_model(model_config: dict, dataset: BaseDataset) -> BaseStaticEmbe
 def initialize_first_batch_strategy(first_batch_config: dict, dataset: BaseDataset) -> FirstBatchStrategy:
     """Initialize a first batch strategy based on the first batch configuration."""
     if first_batch_config["type"] == "RandomFirstBatch":
-        return RandomFirstBatch(dataset, first_batch_config["batch_size"])
+        return RandomFirstBatch(dataset, first_batch_config["data_size"])
     else:
         raise ValueError(f"First batch strategy class {first_batch_config['type']} is not supported.")
 

@@ -1,6 +1,6 @@
 """Base data loader class for loading and managing datasets."""
 
-from abc import ABC, abstractmethod
+from abc import ABC
 
 import torch
 
@@ -45,11 +45,6 @@ class BaseDataLoader(DataLoader, ABC):
         self._test_dataset: BaseDataset | None = None
         self._pool_dataset: BaseDataset | None = None
 
-    @abstractmethod
-    def load_data(self) -> None:
-        """Load and prepare the datasets."""
-        raise NotImplementedError()
-
     def update_train_dataset(self, new_indices: list[int]) -> None:
         """Update training dataset with new samples.
 
@@ -93,7 +88,7 @@ class BaseDataLoader(DataLoader, ABC):
         Returns:
             DataLoader for training dataset
         """
-        if self.train_dataset is None:
+        if self._train_dataset is None:
             raise ValueError("Training dataset has not been initialized")
         return DataLoader(
             self._train_dataset,
@@ -109,7 +104,7 @@ class BaseDataLoader(DataLoader, ABC):
         Returns:
             DataLoader for validation dataset
         """
-        if self.val_dataset is None:
+        if self._val_dataset is None:
             raise ValueError("Validation dataset has not been initialized")
         return DataLoader(
             self._val_dataset,
@@ -125,7 +120,7 @@ class BaseDataLoader(DataLoader, ABC):
         Returns:
             DataLoader for test dataset
         """
-        if self.test_dataset is None:
+        if self._test_dataset is None:
             raise ValueError("Test dataset has not been initialized")
         return DataLoader(
             self._test_dataset,
@@ -141,7 +136,7 @@ class BaseDataLoader(DataLoader, ABC):
         Returns:
             DataLoader for pool dataset
         """
-        if self.pool_dataset is None:
+        if self._pool_dataset is None:
             raise ValueError("Pool dataset has not been initialized")
         return DataLoader(
             self._pool_dataset,

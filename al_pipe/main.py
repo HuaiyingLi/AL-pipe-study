@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from omegaconf import DictConfig, OmegaConf
 
 from al_pipe.data.dna_dataset import DNADataset
+from al_pipe.data_loader.dna_data_loader import DnaDataLoader
 from al_pipe.labeling.in_silico_labeler import InSilicoLabeler
 from al_pipe.training.trainer import Trainer
 from al_pipe.util.general import (
@@ -75,7 +76,7 @@ def main(cfg: DictConfig) -> None:
     seed_all(cfg.seed)  # A helper that sets seed for torch, numpy, etc.
 
     # # ==========================
-    # # 2. Prepare the Dataset
+    # # 2. Prepare the Dataset and DataLoader
     # # ==========================
     # # This DNADataset should be implemented to load DNA sequences, possibly from a CSV/fasta etc.
     dataset = DNADataset(
@@ -83,8 +84,13 @@ def main(cfg: DictConfig) -> None:
         cfg.datasets.data_name,
         batch_size=cfg.datasets.batch_size,
         train_val_test_pool_split=cfg.datasets.train_val_test_pool_split,
+    )
+    full_data_loader = DnaDataLoader(
+        dataset,
+        batch_size=cfg.datasets.batch_size,
         num_workers=cfg.datasets.num_workers,
         pin_memory=cfg.datasets.pin_memory,
+        shuffle=cfg.datasets.shuffle,
     )
     # os.path.join(cfg.paths.data_dir, cfg.datasets.data_path, cfg.datasets.data_name),
     # **(cfg.datasets.params or {}) #If more params are needed
@@ -133,8 +139,11 @@ def main(cfg: DictConfig) -> None:
     # # ==========================
     # Initially, use the first-batch strategy (or a default random split) to select the starting labeled set.
     if first_batch_strategy is not None:
+        # TODO: ZELUN THIS IS SHIT DESIGN NEED TO FIX
+        # MOVE DATA_SIZE TO THE CONSTRUCTOR OF THE DATASET class
+        # FIRST_BATCH STRATEGY SHOULD SET THE BATCH_SIZE NOT THE SPLIT SIZE
         first_batch_loader, test_batch_loader, val_batch_loader, pool_loader = first_batch_strategy.select_first_batch(
-            dataset=dataset, batch_size=cfg.first_batch.batch_size
+            data_loader=full_data_loader, data_size=cfg.datasets.train_val_test_pool_split
         )
     else:
         raise ValueError("First batch strategy is not set")

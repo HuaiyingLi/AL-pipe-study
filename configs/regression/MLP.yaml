@@ -1,6 +1,6 @@
 # configs/regression/MLP.yaml
 
-_target_: al_pipe.regession.mlp
+_target_: al_pipe.regression.mlp.MLP
 sizes: [64, 32, 16, 1]
 learning_rate: 0.001
 batch_norm: true

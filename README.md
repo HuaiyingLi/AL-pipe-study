@@ -9,3 +9,7 @@ git clone git@github.com:cellethology/AL-pipe.git
 cd AL-pipe
 uv sync --dev
 ```
+
+# TODO 
+------
+[] Double check the classes in python is in adherence to the public and private syntax

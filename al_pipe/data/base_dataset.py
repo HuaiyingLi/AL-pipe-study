@@ -18,8 +18,6 @@ class BaseDataset(Dataset, ABC):
         data_name: str,
         batch_size: int,
         train_val_test_pool_split: list[float],
-        num_workers: int,
-        pin_memory: bool,
     ) -> None:
         """
         Initialize the dataset.
@@ -28,8 +26,6 @@ class BaseDataset(Dataset, ABC):
         self.data_path = os.path.join(data_path, data_name)
         self.batch_size = batch_size
         self.train_val_test_pool_split = train_val_test_pool_split
-        self.num_workers = num_workers
-        self.pin_memory = pin_memory
 
     @abstractmethod
     def _load_data(self) -> list[torch.Tensor]:
