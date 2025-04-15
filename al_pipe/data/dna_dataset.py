@@ -42,4 +42,4 @@ class DNADataset(BaseDataset):
         return len(self.data)
 
     def __getitem__(self, index: int) -> tuple[str, float]:
-        return self.data["sequences"].iloc[index], self.data[index]["values"].iloc[index]
+        return self.data["sequences"].iloc[index], self.data["values"].iloc[index]

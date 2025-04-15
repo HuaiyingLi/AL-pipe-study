@@ -13,3 +13,4 @@ uv sync --dev
 # TODO 
 ------
 [] Double check the classes in python is in adherence to the public and private syntax
+[] Beware of the `# @package _global_` namespace in hydra yaml config

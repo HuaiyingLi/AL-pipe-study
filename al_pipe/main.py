@@ -9,17 +9,17 @@ import hydra
 
 from dotenv import load_dotenv
 from omegaconf import DictConfig, OmegaConf
+from pytorch_lightning import Trainer
+from pytorch_lightning.loggers import WandbLogger
 
 from al_pipe.data.dna_dataset import DNADataset
 from al_pipe.data_loader.dna_data_loader import DnaDataLoader
 from al_pipe.labeling.in_silico_labeler import InSilicoLabeler
-from al_pipe.training.trainer import Trainer
 from al_pipe.util.general import (
     avail_device,
     seed_all,
 )
 from al_pipe.util.init import (
-    initialize_evaluator,
     initialize_first_batch_strategy,
     initialize_model,
     initialize_query_strategy,
@@ -75,10 +75,10 @@ def main(cfg: DictConfig) -> None:
     print(f"Device: {device}")
     seed_all(cfg.seed)  # A helper that sets seed for torch, numpy, etc.
 
-    # # ==========================
-    # # 2. Prepare the Dataset and DataLoader
-    # # ==========================
-    # # This DNADataset should be implemented to load DNA sequences, possibly from a CSV/fasta etc.
+    # ==========================
+    # 2. Prepare the Dataset and DataLoader
+    # ==========================
+    # This DNADataset should be implemented to load DNA sequences, possibly from a CSV/fasta etc.
     dataset = DNADataset(
         os.path.join(cfg.paths.data_dir, cfg.datasets.data_path),
         cfg.datasets.data_name,
@@ -95,17 +95,23 @@ def main(cfg: DictConfig) -> None:
     # os.path.join(cfg.paths.data_dir, cfg.datasets.data_path, cfg.datasets.data_name),
     # **(cfg.datasets.params or {}) #If more params are needed
 
-    # # ==========================
-    # # 3. Instantiate the Static Embedding Model
-    # # ==========================
+    # ==========================
+    # 3. Instantiate the Static Embedding Model
+    # ==========================
     # TODO: what is the type of cfg.model?
     model = initialize_model(cfg.model, dataset)
     print(model)
+
+    # TODO: how to load regressor with hydra?
     regressor = hydra.utils.instantiate(cfg.regression)
+
     print(regressor)
-    # # ==========================
-    # # 4. Set Up Active Learning Components
-    # # ==========================
+    print(f"Type of regressor: {type(regressor)}")
+    print(regressor.__class__.__module__)
+
+    # ==========================
+    # 4. Set Up Active Learning Components
+    # ==========================
     # First-Batch Strategy: to select an initial batch
     first_batch_strategy = initialize_first_batch_strategy(cfg.first_batch, dataset)
     print(first_batch_strategy)
@@ -117,9 +123,9 @@ def main(cfg: DictConfig) -> None:
     labeler: InSilicoLabeler = InSilicoLabeler(cfg.labeling.path, cfg.labeling.data_name)
     print(labeler)
 
-    # # ==========================
-    # # 5. Instantiate Trainer and Evaluator
-    # # ==========================
+    # ==========================
+    # 5. Instantiate Trainer and logger
+    # ==========================
     # trainer = Trainer(model, device, **(cfg.trainer or {}))
 
     # TODO: callbacks and logger
@@ -130,63 +136,77 @@ def main(cfg: DictConfig) -> None:
     # logger: List[Logger] = instantiate_loggers(cfg.get("logger"))
 
     # log.info(f"Instantiating trainer <{cfg.trainer._target_}>")
-    trainer: Trainer = hydra.utils.instantiate(cfg.trainer)
+    # TODO: see if you can combine them in yaml file
+    logger: WandbLogger = hydra.utils.instantiate(cfg.logger)
+
+    trainer: Trainer = hydra.utils.instantiate(cfg.trainer, logger=logger)
     print(trainer)
+    print(f"Type of trainer: {type(trainer)}")
+    print(trainer.__class__.__module__)
+
     # evaluator = Evaluator(**(cfg.evaluation or {}))
 
-    # # ==========================
-    # # 6. Active Learning Loop
-    # # ==========================
+    # ==========================
+    # 6. Active Learning Loop
+    # ==========================
     # Initially, use the first-batch strategy (or a default random split) to select the starting labeled set.
-    if first_batch_strategy is not None:
-        # TODO: ZELUN THIS IS SHIT DESIGN NEED TO FIX
-        # MOVE DATA_SIZE TO THE CONSTRUCTOR OF THE DATASET class
-        # FIRST_BATCH STRATEGY SHOULD SET THE BATCH_SIZE NOT THE SPLIT SIZE
-        first_batch_loader, test_batch_loader, val_batch_loader, pool_loader = first_batch_strategy.select_first_batch(
-            data_loader=full_data_loader, data_size=cfg.datasets.train_val_test_pool_split
-        )
-    else:
-        raise ValueError("First batch strategy is not set")
+    # TODO: ZELUN THIS IS SHIT DESIGN NEED TO FIX
+    # MOVE DATA_SIZE TO THE CONSTRUCTOR OF THE DATASET class
+    # FIRST_BATCH STRATEGY SHOULD SET THE BATCH_SIZE NOT THE SPLIT SIZE
 
-    # # Convert indices to dataset splits (this assumes your dataset supports indexing)
+    # This only returns the full_data_loader with the first_batch_strategy applied
+    full_data_loader = first_batch_strategy.select_first_batch(
+        data_loader=full_data_loader, data_size=cfg.datasets.train_val_test_pool_split
+    )
+
+    # Convert indices to dataset splits (this assumes your dataset supports indexing)
     # labeled_data = dataset.get_subset(labeled_idxs)
     # unlabeled_data = dataset.get_subset(unlabeled_idxs)
 
-    evaluator = initialize_evaluator(model, device)
+    # TODO: think about whether we need evaluators here
+    # evaluator = initialize_evaluator(model, device)
     # Run the iterative Active Learning loop for a fixed number of iterations
     n_iterations = cfg.active_learning.al_iterations
     acquisition_batch_size = cfg.active_learning.acquisition_batch_size
 
-    train_loader = first_batch_loader
     for iteration in range(n_iterations):
         print(f"\n=== Active Learning Iteration {iteration + 1}/{n_iterations} ===")
 
         # Train the model on the current labeled data
-        trainer.train(train_loader, test_batch_loader, val_batch_loader)
+        # Only train_loader is referenced different different
+        # TODO: set CKPT path for trainer
+        # see if we should set it in trainer or in the model
+        trainer.fit(
+            regressor,
+            train_dataloaders=full_data_loader.get_train_loader(),
+            val_dataloaders=full_data_loader.get_val_loader(),
+        )
 
         # Evaluate on unlabeled pool and/or validation set if available
-        metrics = evaluator.evaluate(model, regressor, dataset)
-        print(f"Evaluation metrics: {metrics}")
+        # metrics = evaluator.evaluate(model, regressor, dataset)
+        # print(f"Evaluation metrics: {metrics}")
 
         # Use the query strategy to select new samples from unlabeled_data
-        queried_idxs = query_strategy.select_samples(model, pool_loader, batch_size=acquisition_batch_size)
+        queried_idxs = query_strategy.select_samples(
+            model, full_data_loader.get_pool_loader(), batch_size=acquisition_batch_size
+        )
 
         # Query the labeling module (simulated oracle) to obtain ground truth labels for selected samples
-        new_labeled_data = labeler.label(pool_loader, queried_idxs)
+        new_labeled_data = labeler.label(full_data_loader.get_pool_loader(), queried_idxs)
 
         # Update the labeled set and remove newly labeled indices from the unlabeled pool
         # By appending, we essentially mean training on all the data
-        train_loader.update_train_dataset(queried_idxs, new_labels=new_labeled_data, mode="append")
+        full_data_loader.update_train_dataset(queried_idxs, new_labels=new_labeled_data, mode="append")
 
-        pool_loader.update_pool_dataset(queried_idxs, mode="remove")
+        full_data_loader.update_pool_dataset(queried_idxs, mode="remove")
 
         # Optionally, save checkpoints, log results, or adjust hyperparameters here
 
     # ==========================
     # 7. Final Evaluation
     # ==========================
-    final_metrics = evaluator.evaluate(model, dataset)
-    print("Final evaluation metrics:", final_metrics)
+    # final_metrics = evaluator.evaluate(model, dataset)
+    # print("Final evaluation metrics:", final_metrics)
 
 
 if __name__ == "__main__":

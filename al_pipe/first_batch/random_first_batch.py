@@ -63,4 +63,4 @@ class RandomFirstBatch(FirstBatchStrategy):
         data_loader.update_test_dataset(split_indices[2])
         data_loader.update_pool_dataset(indices[start_idx:])
 
-        return data_loader.get_train_loader()
+        return data_loader

@@ -29,7 +29,7 @@ class MLP(pl.LightningModule):
             weight_decay: L2 regularization factor
         """
         super().__init__()
-        self.save_hyperparameters()
+        # self.save_hyperparameters()
 
         layers = []
         for s in range(len(sizes) - 1):
@@ -69,6 +69,7 @@ class MLP(pl.LightningModule):
         x, y = batch
         y_hat = self(x)
         loss = F.mse_loss(y_hat, y)
+        # Logging the training loss this will be synced to wandb
         self.log("train_loss", loss)
         return loss
 
