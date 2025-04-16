@@ -1,3 +1,2 @@
-type: "static"
-name: "OneHotEmbedder"
+_target_: al_pipe.embedding_models.static.onehot_embedding.OneHotEmbedder
 device: ${device}

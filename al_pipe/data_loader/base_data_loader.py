@@ -33,6 +33,13 @@ class BaseDataLoader(DataLoader, ABC):
             pin_memory: If True, pin memory for faster data transfer to GPU
             shuffle: If True, shuffle the data at every epoch
         """
+        super().__init__(
+            dataset,
+            batch_size,
+            shuffle,
+            num_workers=num_workers,
+            pin_memory=pin_memory,
+        )
         self._dataset = dataset
         self._batch_size = batch_size
         self._num_workers = num_workers
@@ -96,6 +103,7 @@ class BaseDataLoader(DataLoader, ABC):
             shuffle=self._shuffle,
             num_workers=self._num_workers,
             pin_memory=self._pin_memory,
+            collate_fn=self.get_collate_fn(),
         )
 
     def get_val_loader(self) -> DataLoader:
@@ -112,6 +120,7 @@ class BaseDataLoader(DataLoader, ABC):
             shuffle=False,
             num_workers=self._num_workers,
             pin_memory=self._pin_memory,
+            collate_fn=self.get_collate_fn(),
         )
 
     def get_test_loader(self) -> DataLoader:
@@ -128,6 +137,7 @@ class BaseDataLoader(DataLoader, ABC):
             shuffle=False,
             num_workers=self._num_workers,
             pin_memory=self._pin_memory,
+            collate_fn=self.get_collate_fn(),
         )
 
     def get_pool_loader(self) -> DataLoader:
@@ -144,4 +154,5 @@ class BaseDataLoader(DataLoader, ABC):
             shuffle=False,
             num_workers=self._num_workers,
             pin_memory=self._pin_memory,
+            collate_fn=self.get_collate_fn(),
         )

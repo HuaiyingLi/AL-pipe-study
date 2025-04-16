@@ -12,10 +12,10 @@ from al_pipe.queries.base_strategy import BaseQueryStrategy
 from al_pipe.queries.random_sampling import RandomQueryStrategy
 
 
-def initialize_model(model_config: dict, dataset: BaseDataset) -> BaseStaticEmbedder:
+def initialize_model(model_config: dict) -> BaseStaticEmbedder:
     """Initialize a model based on the model configuration."""
     if model_config["name"] == "OneHotEmbedder" and model_config["type"] == "static":
-        return OneHotEmbedder(dataset, model_config["device"])
+        return OneHotEmbedder(model_config["device"])
     else:
         raise ValueError(f"Model class {model_config['type']} must inherit from BaseStaticEmbedder")
 

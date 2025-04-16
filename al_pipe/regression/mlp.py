@@ -29,7 +29,7 @@ class MLP(pl.LightningModule):
             weight_decay: L2 regularization factor
         """
         super().__init__()
-        # self.save_hyperparameters()
+        self.save_hyperparameters()
 
         layers = []
         for s in range(len(sizes) - 1):
@@ -54,7 +54,7 @@ class MLP(pl.LightningModule):
         Returns:
             Model predictions
         """
-        return self.network(x)
+        return self.network(x.view(x.size(0), -1))
 
     def training_step(self, batch: tuple, batch_idx: int) -> torch.Tensor:
         """Training step.

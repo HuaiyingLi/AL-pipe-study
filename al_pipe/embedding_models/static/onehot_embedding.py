@@ -1,8 +1,8 @@
 """Onehot encoding class for data embedding."""
 
 import pandas as pd
+import torch
 
-from al_pipe.data.base_dataset import BaseDataset
 from al_pipe.embedding_models.static.base_static_embedder import BaseStaticEmbedder
 
 
@@ -19,30 +19,11 @@ class OneHotEmbedder(BaseStaticEmbedder):
         al_data (Data): Data object containing the dataset to be encoded
     """
 
-    def __init__(self, dataset: BaseDataset, device="cuda") -> None:
-        super().__init__(dataset, device)
+    def __init__(self, device="cuda") -> None:
+        super().__init__(device)
 
-    def embed_loaded_sequences(self) -> pd.Series:
-        """
-        Generate one-hot encoded embeddings for DNA sequences loaded in the class.
-
-        Converts each DNA sequence in self.sequence_data into a one-hot encoded tensor
-        representation using the onehot_encode_dna function.
-
-        Returns:
-            pd.Series: A pandas Series containing one-hot encoded tensors for each DNA sequence.
-                      Each tensor has shape (sequence_length, 4) where 4 represents the four
-                      possible nucleotides (A,C,G,T).
-        """
-        # TODO: stacking can be done later since they are of different length
-
-        # # Convert the encoded series into a list of tensors, then stack them.
-        # encoded_tensor = torch.stack(encoded_series.tolist())
-        from al_pipe.util.general import onehot_encode_dna
-
-        return self.sequence_data.apply(onehot_encode_dna)
-
-    def embed_any_sequences(sequences: pd.Series) -> pd.Series:
+    @staticmethod
+    def embed_any_sequences(sequences: pd.Series) -> list[torch.Tensor]:
         """
         Generate one-hot encoded embeddings for any input DNA sequences.
 
@@ -50,10 +31,12 @@ class OneHotEmbedder(BaseStaticEmbedder):
             sequences (pd.Series): A pandas Series containing DNA sequences to be encoded.
 
         Returns:
-            pd.Series: A pandas Series containing one-hot encoded tensors for each DNA sequence.
+            list[torch.Tensor]: A list of tensors containing one-hot encoded tensors for each DNA sequence.
                       Each tensor has shape (sequence_length, 4) where 4 represents the four
                       possible nucleotides (A,C,G,T).
         """
+        # TODO: fix circular import
         from al_pipe.util.general import onehot_encode_dna
 
-        return sequences.apply(onehot_encode_dna)
+        # TODO: this is not efficient, should be vectorized (if possible)
+        return [encoded for seq in sequences if (encoded := onehot_encode_dna(seq)) is not None]

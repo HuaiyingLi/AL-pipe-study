@@ -9,3 +9,4 @@ train_val_test_pool_split:
 num_workers: 1
 pin_memory: False
 shuffle: True
+MAX_LENGTH: 150

@@ -10,7 +10,6 @@ import hydra
 from dotenv import load_dotenv
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import Trainer
-from pytorch_lightning.loggers import WandbLogger
 
 from al_pipe.data.dna_dataset import DNADataset
 from al_pipe.data_loader.dna_data_loader import DnaDataLoader
@@ -21,7 +20,6 @@ from al_pipe.util.general import (
 )
 from al_pipe.util.init import (
     initialize_first_batch_strategy,
-    initialize_model,
     initialize_query_strategy,
 )
 
@@ -76,15 +74,32 @@ def main(cfg: DictConfig) -> None:
     seed_all(cfg.seed)  # A helper that sets seed for torch, numpy, etc.
 
     # ==========================
-    # 2. Prepare the Dataset and DataLoader
+    # 2. Instantiate the Static Embedding Model
+    # ==========================
+
+    # TODO: how to load regressor with hydra?
+    regressor = hydra.utils.instantiate(cfg.regression)
+
+    print(regressor)
+    print(f"Type of regressor: {type(regressor)}")
+    print(regressor.__class__.__module__)
+    # ==========================
+    # 3. Prepare the Dataset and DataLoader
     # ==========================
     # This DNADataset should be implemented to load DNA sequences, possibly from a CSV/fasta etc.
+    embedding_model = hydra.utils.instantiate(cfg.model)
+    print(embedding_model)
+    print(f"Type of embedding_model: {type(embedding_model)}")
+    print(embedding_model.__class__.__module__)
     dataset = DNADataset(
         os.path.join(cfg.paths.data_dir, cfg.datasets.data_path),
         cfg.datasets.data_name,
         batch_size=cfg.datasets.batch_size,
+        max_length=cfg.datasets.MAX_LENGTH,
         train_val_test_pool_split=cfg.datasets.train_val_test_pool_split,
+        embedding_model=embedding_model,
     )
+    # TODO: DNA DATALOADER in separate file with max_length as a parameter
     full_data_loader = DnaDataLoader(
         dataset,
         batch_size=cfg.datasets.batch_size,
@@ -94,20 +109,6 @@ def main(cfg: DictConfig) -> None:
     )
     # os.path.join(cfg.paths.data_dir, cfg.datasets.data_path, cfg.datasets.data_name),
     # **(cfg.datasets.params or {}) #If more params are needed
-
-    # ==========================
-    # 3. Instantiate the Static Embedding Model
-    # ==========================
-    # TODO: what is the type of cfg.model?
-    model = initialize_model(cfg.model, dataset)
-    print(model)
-
-    # TODO: how to load regressor with hydra?
-    regressor = hydra.utils.instantiate(cfg.regression)
-
-    print(regressor)
-    print(f"Type of regressor: {type(regressor)}")
-    print(regressor.__class__.__module__)
 
     # ==========================
     # 4. Set Up Active Learning Components
@@ -137,15 +138,14 @@ def main(cfg: DictConfig) -> None:
 
     # log.info(f"Instantiating trainer <{cfg.trainer._target_}>")
     # TODO: see if you can combine them in yaml file
-    logger: WandbLogger = hydra.utils.instantiate(cfg.logger)
+    # logger: WandbLogger = hydra.utils.instantiate(cfg.logger)
 
-    trainer: Trainer = hydra.utils.instantiate(cfg.trainer, logger=logger)
+    trainer: Trainer = hydra.utils.instantiate(cfg.trainer)
     print(trainer)
     print(f"Type of trainer: {type(trainer)}")
     print(trainer.__class__.__module__)
 
     # evaluator = Evaluator(**(cfg.evaluation or {}))
-
     # ==========================
     # 6. Active Learning Loop
     # ==========================
@@ -159,13 +159,13 @@ def main(cfg: DictConfig) -> None:
         data_loader=full_data_loader, data_size=cfg.datasets.train_val_test_pool_split
     )
 
-    # Convert indices to dataset splits (this assumes your dataset supports indexing)
-    # labeled_data = dataset.get_subset(labeled_idxs)
-    # unlabeled_data = dataset.get_subset(unlabeled_idxs)
+    # # Convert indices to dataset splits (this assumes your dataset supports indexing)
+    # # labeled_data = dataset.get_subset(labeled_idxs)
+    # # unlabeled_data = dataset.get_subset(unlabeled_idxs)
 
-    # TODO: think about whether we need evaluators here
-    # evaluator = initialize_evaluator(model, device)
-    # Run the iterative Active Learning loop for a fixed number of iterations
+    # # TODO: think about whether we need evaluators here
+    # # evaluator = initialize_evaluator(model, device)
+    # # Run the iterative Active Learning loop for a fixed number of iterations
     n_iterations = cfg.active_learning.al_iterations
     acquisition_batch_size = cfg.active_learning.acquisition_batch_size
 
@@ -188,7 +188,7 @@ def main(cfg: DictConfig) -> None:
 
         # Use the query strategy to select new samples from unlabeled_data
         queried_idxs = query_strategy.select_samples(
-            model, full_data_loader.get_pool_loader(), batch_size=acquisition_batch_size
+            embedding_model, full_data_loader.get_pool_loader(), batch_size=acquisition_batch_size
         )
 
         # Query the labeling module (simulated oracle) to obtain ground truth labels for selected samples
@@ -200,7 +200,7 @@ def main(cfg: DictConfig) -> None:
 
         full_data_loader.update_pool_dataset(queried_idxs, mode="remove")
 
-        # Optionally, save checkpoints, log results, or adjust hyperparameters here
+    # Optionally, save checkpoints, log results, or adjust hyperparameters here
 
     # ==========================
     # 7. Final Evaluation

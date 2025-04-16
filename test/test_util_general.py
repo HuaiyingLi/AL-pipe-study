@@ -5,7 +5,7 @@ import random
 import numpy as np
 import torch
 
-from al_pipe.util.data import seed_all
+from al_pipe.util.general import onehot_encode_dna, seed_all
 
 
 def test_returned_randomstate():  # noqa: D103
@@ -42,3 +42,18 @@ def test_global_torch_seed():  # noqa: D103
     b = torch.rand(5)
     # Use torch.allclose to compare floating-point tensors
     assert torch.allclose(a, b)
+
+def test_onehot_encode_dna():
+    seq = "ATCGN"
+    encoded = onehot_encode_dna(seq)
+    assert encoded.shape == (5, 4)
+    assert torch.allclose(encoded[0], torch.tensor([1.0, 0.0, 0.0, 0.0]))
+    assert torch.allclose(encoded[1], torch.tensor([0.0, 1.0, 0.0, 0.0]))
+    assert torch.allclose(encoded[2], torch.tensor([0.0, 0.0, 1.0, 0.0]))
+    assert torch.allclose(encoded[3], torch.tensor([0.0, 0.0, 0.0, 1.0]))
+    assert torch.allclose(encoded[4], torch.tensor([0.0, 0.0, 0.0, 0.0]))
+
+def test_onehot_encode_dna_invalid():
+    seq = "ATCGX"
+    encoded = onehot_encode_dna(seq)
+    assert encoded is None

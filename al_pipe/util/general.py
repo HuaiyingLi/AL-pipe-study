@@ -7,7 +7,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-SEQUENCE_CODE = {"A": 0, "C": 1, "T": 2, "G": 3, "N": 0}
+# TODO: think whether setting N to 0 is a good idea
+SEQUENCE_CODE = {"A": 0, "T": 1, "C": 2, "G": 3, "N": 0}
 
 
 def seed_all(seed: int) -> np.random.RandomState:
@@ -60,8 +61,8 @@ def validate_dna(seq: str) -> None:
     Args:
         seq (str): The DNA sequence.
 
-    Raises:
-        ValueError: If the sequence contains invalid characters.
+    Returns:
+        bool: True if the sequence is valid, False otherwise.
     """
     allowed = set("ACGTN")
     invalid = set(seq.upper()) - allowed
@@ -71,26 +72,30 @@ def validate_dna(seq: str) -> None:
 
 def onehot_encode_dna(seq: str) -> torch.Tensor:
     """Given DNA sequence input covert it to onehot encoded form."""
-    if validate_dna(seq):
-        # Convert the string into a NumPy array
-        arr = np.array(list(seq))
+    try:
+        validate_dna(seq)
+    except ValueError:
+        return None
+    # Convert the string into a NumPy array
+    arr = np.array(list(seq))
 
-        # masked_N scores indices where N occurs
-        mask_N = arr == "N"
+    # masked_N scores indices where N occurs
+    mask_N = arr == "N"
 
-        # Use vectorized indexing to map each character to its corresponding index.
-        indices = SEQUENCE_CODE[arr]
+    # Use vectorized indexing to map each character to its corresponding index.
+    vectorized_indices = np.vectorize(SEQUENCE_CODE.get)
+    indices = vectorized_indices(arr)
 
-        # Create the one-hot encoding matrix by indexing into an identity matrix.
-        one_hot = F.one_hot(
-            torch.tensor(indices, dtype=torch.long), num_classes=len(SEQUENCE_CODE) - 1
-        ).float()  # num_classses - 1 to account for N in the sequence
+    # Create the one-hot encoding matrix by indexing into an identity matrix.
+    one_hot = F.one_hot(
+        torch.tensor(indices, dtype=torch.long), num_classes=len(SEQUENCE_CODE) - 1
+    ).float()  # num_classses - 1 to account for N in the sequence
 
-        # Zero out rows corresponding to 'N'.
-        mask_N_tensor = torch.tensor(mask_N, dtype=torch.bool)
-        one_hot[mask_N_tensor] = 0.0
+    # Zero out rows corresponding to 'N'.
+    mask_N_tensor = torch.tensor(mask_N, dtype=torch.bool)
+    one_hot[mask_N_tensor] = 0
 
-        return one_hot
+    return one_hot
 
 
 def pad_collate_fn(batch):
