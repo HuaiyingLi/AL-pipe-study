@@ -36,7 +36,7 @@ class DnaDataLoader(BaseDataLoader):
             collate_fn: The collate function to use for the data
         """
         super().__init__(dataset, batch_size, shuffle, num_workers, pin_memory)
-        # TODO: move max_length to the constructor of the class
+        # TODO: move max_length to the constructor of the class and not using it from the dataset
         self._max_length = dataset.max_length
         self.collate_fn = self.get_collate_fn()
 
