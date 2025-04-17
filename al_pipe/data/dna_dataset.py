@@ -5,6 +5,7 @@ import torch
 
 from al_pipe.data.base_dataset import BaseDataset
 from al_pipe.embedding_models.static.base_static_embedder import BaseStaticEmbedder
+from al_pipe.first_batch.base_first_batch import FirstBatchStrategyFactory
 from al_pipe.util.data import load_data
 
 
@@ -18,12 +19,19 @@ class DNADataset(BaseDataset):
         batch_size: int,
         train_val_test_pool_split: list[float],
         max_length: int,
-        embedding_model: BaseStaticEmbedder,
+        embedding_model: BaseStaticEmbedder | None = None,
+        first_batch_strategy: FirstBatchStrategyFactory | None = None,
     ) -> None:
-        super().__init__(data_path, data_name, batch_size, train_val_test_pool_split, embedding_model)
+        super().__init__(
+            data_path, data_name, batch_size, train_val_test_pool_split, embedding_model, first_batch_strategy
+        )
         self.data: pd.DataFrame = self._load_data()
-        self.embedded_data: list[torch.Tensor] = self._embed_data()
         self.max_length: int = max_length
+
+        if embedding_model is not None:
+            self.embedded_data: list[torch.Tensor] = self._embed_data()
+        if first_batch_strategy is not None:
+            self.first_batch_strategy = first_batch_strategy
 
     def _embed_data(self) -> list[torch.Tensor]:
         """Embed the data."""
@@ -40,13 +48,22 @@ class DNADataset(BaseDataset):
         """
         return load_data(self.data_path)
 
-    def get_sequences(self) -> pd.Series:
-        """Get the sequences from the dataset.
+    def return_label(self, sequences: list[str]) -> list[float]:
+        """Return the labels for the given sequences.
+
+        Args:
+            sequences (list[str]): A list of DNA sequences.
 
         Returns:
-            pd.Series: A pandas Series containing the sequences from the dataset.
+            list[float]: A list of labels corresponding to the given sequences.
         """
-        return self.data["sequences"]
+        labels = []
+        for sequence in sequences:
+            if sequence in self.data["sequences"].values:
+                labels.append(self.data.loc[self.data["sequences"] == sequence, "values"].values[0])
+            else:
+                raise ValueError(f"Sequence {sequence} not found in the dataset.")
+        return labels
 
     def __len__(self) -> int:
         return len(self.data)

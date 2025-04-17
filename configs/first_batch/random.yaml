@@ -1,5 +1,1 @@
-type: "RandomFirstBatch"
-data_size:
-  train: 128
-  test: 32 # TODO: How to get a good representation this testset
-  val: 32 # TODO: How to get a good validation representation
+_target_: al_pipe.first_batch.random_first_batch.RandomFirstBatch

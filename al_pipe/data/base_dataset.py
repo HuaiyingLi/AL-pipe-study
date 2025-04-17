@@ -10,6 +10,7 @@ from torch.nn import functional as F
 from torch.utils.data import Dataset
 
 from al_pipe.embedding_models.static.base_static_embedder import BaseStaticEmbedder
+from al_pipe.first_batch.base_first_batch import FirstBatchStrategyFactory
 
 
 class BaseDataset(Dataset, ABC):
@@ -21,7 +22,9 @@ class BaseDataset(Dataset, ABC):
         data_name: str,
         batch_size: int,
         train_val_test_pool_split: list[float],
-        embedding_model: BaseStaticEmbedder,
+        max_length: int,
+        embedding_model: BaseStaticEmbedder | None = None,
+        first_batch_strategy: FirstBatchStrategyFactory | None = None,
     ) -> None:
         """
         Initialize the dataset.
@@ -38,6 +41,7 @@ class BaseDataset(Dataset, ABC):
         self.batch_size = batch_size
         self.train_val_test_pool_split = train_val_test_pool_split
         self.embedding_model = embedding_model
+        self.first_batch_strategy = first_batch_strategy
 
     @abstractmethod
     def _load_data(self) -> list[torch.Tensor]:

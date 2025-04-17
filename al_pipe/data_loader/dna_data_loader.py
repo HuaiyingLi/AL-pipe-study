@@ -10,7 +10,7 @@ from al_pipe.data.dna_dataset import DNADataset
 from al_pipe.data_loader.base_data_loader import BaseDataLoader
 
 
-class DnaDataLoader(BaseDataLoader):
+class DNADataLoader(BaseDataLoader):
     r"""Data loader class for DNA sequence data.
 
     This class handles loading and managing DNA sequence datasets, providing functionality

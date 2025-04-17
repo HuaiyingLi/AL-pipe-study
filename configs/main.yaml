@@ -7,7 +7,6 @@ defaults:
   - evaluator: default
   - first_batch: random
   - active_learning: default
-  - labeling: default
   - query: random
   - logger: wandb
   - paths: default

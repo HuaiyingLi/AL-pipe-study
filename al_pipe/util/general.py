@@ -11,6 +11,20 @@ import torch.nn.functional as F
 SEQUENCE_CODE = {"A": 0, "T": 1, "C": 2, "G": 3, "N": 0}
 
 
+def tensor_key_bytes(t: torch.Tensor) -> bytes:
+    """
+    Convert a tensor to bytes.
+    """
+    return t.cpu().numpy().tobytes()
+
+
+def tensor_lookup_dict(t: torch.Tensor) -> dict:
+    """
+    Convert a tensor to a lookup dictionary.
+    """
+    return {tensor_key_bytes(k): v for k, v in t.items()}
+
+
 def seed_all(seed: int) -> np.random.RandomState:
     """
     Set random seeds for reproducibility across PyTorch, NumPy and Python's random.

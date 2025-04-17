@@ -30,3 +30,6 @@ logs/
 *.log.*.*.*.*
 *.log.*.*.*.*.*
 *.log.*.*.*.*.*.*
+
+# burn test
+burn_test.py

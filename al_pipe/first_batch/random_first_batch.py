@@ -2,12 +2,11 @@
 
 import numpy as np
 
-from al_pipe.data.base_dataset import BaseDataset
 from al_pipe.data_loader.base_data_loader import BaseDataLoader
-from al_pipe.first_batch.base_first_batch import FirstBatchStrategy
+from al_pipe.first_batch.base_first_batch import FirstBatchStrategyFactory
 
 
-class RandomFirstBatch(FirstBatchStrategy):
+class RandomFirstBatch(FirstBatchStrategyFactory):
     """
     A strategy that randomly selects sequences for the first batch.
 
@@ -16,10 +15,8 @@ class RandomFirstBatch(FirstBatchStrategy):
     pipeline.
     """
 
-    def __init__(self, dataset: BaseDataset, data_size: dict[str, int]) -> None:
-        super().__init__(dataset, data_size)
-
-    def select_first_batch(self, data_loader: BaseDataLoader, data_size: dict[str, int]) -> BaseDataLoader:
+    @staticmethod
+    def select_first_batch(data_loader: BaseDataLoader, data_size: dict[str, int]) -> BaseDataLoader:
         """
         Randomly select sequences for the first batch and update the data loader.
 
@@ -35,9 +32,7 @@ class RandomFirstBatch(FirstBatchStrategy):
         """
         # TODO: There might be a faster way to split using train_test_split
         # Get total dataset size
-        # TODO: this is a hack to get the dataset from the data loader
-        # THIS SHOULD BE FIXED WITH A GETTER METHOD
-        dataset = data_loader._dataset
+        dataset = data_loader.get_dataset()
         total_size = len(dataset)
 
         # Randomly select indices for all splits

@@ -5,7 +5,7 @@ import os
 import pandas as pd
 import pytest
 
-from al_pipe.labeling.in_silico_labeler import InSilicoLabeler
+from al_pipe.data.dna_dataset import DNADataset
 
 
 @pytest.fixture
@@ -17,8 +17,8 @@ def test_insilico_labeler():
     return test_data
 
 
-def test_insilico_labeler_returns_labels(test_insilico_labeler):
+def test_insilico_labeler_returns_labels():
     # create an insilico labeler
-    insilico_labeler = InSilicoLabeler(path="./dataset/test", data_name="test_data.csv")
+    insilico_labeler = DNADataset(data_path="./dataset/test", data_name="test_data.csv", batch_size=1, train_val_test_pool_split=[0.5, 0.25, 0.25], max_length=4, embedding_model=None, first_batch_strategy=None)
     labels = insilico_labeler.return_label(["ACCT", "ATCG", "ATTC"])
     assert labels == [2, 1, 3]

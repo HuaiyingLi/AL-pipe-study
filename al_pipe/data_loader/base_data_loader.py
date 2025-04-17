@@ -156,3 +156,11 @@ class BaseDataLoader(DataLoader, ABC):
             pin_memory=self._pin_memory,
             collate_fn=self.get_collate_fn(),
         )
+
+    def get_dataset(self) -> BaseDataset:
+        """Get the dataset.
+
+        Returns:
+            BaseDataset: The dataset
+        """
+        return self._dataset

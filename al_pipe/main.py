@@ -12,14 +12,12 @@ from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import Trainer
 
 from al_pipe.data.dna_dataset import DNADataset
-from al_pipe.data_loader.dna_data_loader import DnaDataLoader
-from al_pipe.labeling.in_silico_labeler import InSilicoLabeler
+from al_pipe.data_loader.dna_data_loader import DNADataLoader
 from al_pipe.util.general import (
     avail_device,
     seed_all,
 )
 from al_pipe.util.init import (
-    initialize_first_batch_strategy,
     initialize_query_strategy,
 )
 
@@ -88,9 +86,7 @@ def main(cfg: DictConfig) -> None:
     # ==========================
     # This DNADataset should be implemented to load DNA sequences, possibly from a CSV/fasta etc.
     embedding_model = hydra.utils.instantiate(cfg.model)
-    print(embedding_model)
-    print(f"Type of embedding_model: {type(embedding_model)}")
-    print(embedding_model.__class__.__module__)
+
     dataset = DNADataset(
         os.path.join(cfg.paths.data_dir, cfg.datasets.data_path),
         cfg.datasets.data_name,
@@ -98,9 +94,11 @@ def main(cfg: DictConfig) -> None:
         max_length=cfg.datasets.MAX_LENGTH,
         train_val_test_pool_split=cfg.datasets.train_val_test_pool_split,
         embedding_model=embedding_model,
+        first_batch_strategy=hydra.utils.instantiate(cfg.first_batch),
     )
+
     # TODO: DNA DATALOADER in separate file with max_length as a parameter
-    full_data_loader = DnaDataLoader(
+    full_data_loader = DNADataLoader(
         dataset,
         batch_size=cfg.datasets.batch_size,
         num_workers=cfg.datasets.num_workers,
@@ -113,16 +111,9 @@ def main(cfg: DictConfig) -> None:
     # ==========================
     # 4. Set Up Active Learning Components
     # ==========================
-    # First-Batch Strategy: to select an initial batch
-    first_batch_strategy = initialize_first_batch_strategy(cfg.first_batch, dataset)
-    print(first_batch_strategy)
     # Query Strategy: for iterative selection of samples
     query_strategy = initialize_query_strategy(cfg.query, dataset)
     print(query_strategy)
-
-    # Labeling Module: simulation of an oracle to provide labels
-    labeler: InSilicoLabeler = InSilicoLabeler(cfg.labeling.path, cfg.labeling.data_name)
-    print(labeler)
 
     # ==========================
     # 5. Instantiate Trainer and logger
@@ -155,50 +146,51 @@ def main(cfg: DictConfig) -> None:
     # FIRST_BATCH STRATEGY SHOULD SET THE BATCH_SIZE NOT THE SPLIT SIZE
 
     # This only returns the full_data_loader with the first_batch_strategy applied
-    full_data_loader = first_batch_strategy.select_first_batch(
+    full_data_loader = dataset.first_batch_strategy.select_first_batch(
         data_loader=full_data_loader, data_size=cfg.datasets.train_val_test_pool_split
     )
 
-    # # Convert indices to dataset splits (this assumes your dataset supports indexing)
-    # # labeled_data = dataset.get_subset(labeled_idxs)
-    # # unlabeled_data = dataset.get_subset(unlabeled_idxs)
+    # Convert indices to dataset splits (this assumes your dataset supports indexing)
+    # labeled_data = dataset.get_subset(labeled_idxs)
+    # unlabeled_data = dataset.get_subset(unlabeled_idxs)
 
-    # # TODO: think about whether we need evaluators here
-    # # evaluator = initialize_evaluator(model, device)
-    # # Run the iterative Active Learning loop for a fixed number of iterations
-    n_iterations = cfg.active_learning.al_iterations
-    acquisition_batch_size = cfg.active_learning.acquisition_batch_size
+    # TODO: think about whether we need evaluators here
+    # evaluator = initialize_evaluator(model, device)
+    # Run the iterative Active Learning loop for a fixed number of iterations
+    # n_iterations = cfg.active_learning.al_iterations
+    # acquisition_batch_size = cfg.active_learning.acquisition_batch_size
 
-    for iteration in range(n_iterations):
-        print(f"\n=== Active Learning Iteration {iteration + 1}/{n_iterations} ===")
+    # for iteration in range(n_iterations):
+    #     print(f"\n=== Active Learning Iteration {iteration + 1}/{n_iterations} ===")
 
-        # Train the model on the current labeled data
-        # Only train_loader is referenced different different
-        # TODO: set CKPT path for trainer
-        # see if we should set it in trainer or in the model
-        trainer.fit(
-            regressor,
-            train_dataloaders=full_data_loader.get_train_loader(),
-            val_dataloaders=full_data_loader.get_val_loader(),
-        )
+    #     # Train the model on the current labeled data
+    #     # Only train_loader is referenced different different
+    #     # TODO: set CKPT path for trainer
+    #     # see if we should set it in trainer or in the model
+    #     trainer.fit(
+    #         regressor,
+    #         train_dataloaders=full_data_loader.get_train_loader(),
+    #         val_dataloaders=full_data_loader.get_val_loader(),
+    #     )
 
-        # Evaluate on unlabeled pool and/or validation set if available
-        # metrics = evaluator.evaluate(model, regressor, dataset)
-        # print(f"Evaluation metrics: {metrics}")
+    #     # Evaluate on unlabeled pool and/or validation set if available
+    #     # metrics = evaluator.evaluate(model, regressor, dataset)
+    #     # print(f"Evaluation metrics: {metrics}")
 
-        # Use the query strategy to select new samples from unlabeled_data
-        queried_idxs = query_strategy.select_samples(
-            embedding_model, full_data_loader.get_pool_loader(), batch_size=acquisition_batch_size
-        )
+    #     # Use the query strategy to select new samples from unlabeled_data
+    #     queried_idxs = query_strategy.select_samples(
+    #         embedding_model, full_data_loader.get_pool_loader(), batch_size=acquisition_batch_size
+    #     )
 
-        # Query the labeling module (simulated oracle) to obtain ground truth labels for selected samples
-        new_labeled_data = labeler.label(full_data_loader.get_pool_loader(), queried_idxs)
+    #     # Query the labeling module (simulated oracle) to obtain ground truth labels for selected samples
+    #     new_labeled_data = labeler.return_label(full_data_loader.get_pool_loader(), queried_idxs)
 
-        # Update the labeled set and remove newly labeled indices from the unlabeled pool
-        # By appending, we essentially mean training on all the data
-        full_data_loader.update_train_dataset(queried_idxs, new_labels=new_labeled_data, mode="append")
+    #     # Update the labeled set and remove newly labeled indices from the unlabeled pool
+    #     # By appending, we essentially mean training on all the data
+    #     full_data_loader.update_train_dataset(queried_idxs, new_labels=new_labeled_data, mode="append")
 
-        full_data_loader.update_pool_dataset(queried_idxs, mode="remove")
+    #     full_data_loader.update_pool_dataset(queried
+    #                                          _idxs, mode="remove")
 
     # Optionally, save checkpoints, log results, or adjust hyperparameters here
 
