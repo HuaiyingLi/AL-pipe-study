@@ -14,3 +14,7 @@ uv sync --dev
 ------
 - [ ] Double check the classes in python is in adherence to the public and private syntax
 - [ ] Beware of the `# @package _global_` namespace in hydra yaml config
+- [ ] Write plotting function integrated with the trainer
+- [ ] Check all the todos
+- [ ] Update the codespace with datamodule class (easier to manage data) `trainer.test(model, datamodule=dm)` 
+- [ ] Double check if the seed is correct

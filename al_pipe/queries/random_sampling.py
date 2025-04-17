@@ -2,6 +2,8 @@
 
 import random
 
+import torch
+
 from al_pipe.data_loader.base_data_loader import BaseDataLoader
 from al_pipe.queries.base_strategy import BaseQueryStrategy
 
@@ -20,7 +22,7 @@ class RandomQueryStrategy(BaseQueryStrategy):
         super().__init__(selection_size)
 
     # TODO: add status tracker later
-    def select_samples(self, full_data_loader: BaseDataLoader) -> None:
+    def select_samples(self, regressor: torch.nn.Module, full_data_loader: BaseDataLoader) -> None:
         """
         Select samples from the unlabeled pool for labeling.
 

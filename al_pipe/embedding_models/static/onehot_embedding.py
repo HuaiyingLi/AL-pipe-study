@@ -2,6 +2,7 @@
 
 import pandas as pd
 import torch
+import torch.nn.functional as F
 
 from al_pipe.embedding_models.static.base_static_embedder import BaseStaticEmbedder
 
@@ -38,5 +39,30 @@ class OneHotEmbedder(BaseStaticEmbedder):
         # TODO: fix circular import
         from al_pipe.util.general import onehot_encode_dna
 
-        # TODO: this is not efficient, should be vectorized (if possible)
-        return [encoded for seq in sequences if (encoded := onehot_encode_dna(seq)) is not None]
+        ## 1) Find the maximum sequence length
+        #    (fall back to 0 if there are no sequences)
+        # seq_lens = sequences.str.len().tolist()
+        # TODO: set max_len outside of this function
+        max_len = 100
+        # max_len = max(seq_lens) if seq_lens else 0
+
+        embeddings: list[torch.Tensor] = []
+        for seq in sequences:
+            encoded = onehot_encode_dna(seq)
+            if encoded is None:
+                continue
+
+            L = encoded.size(0)
+            if L < max_len:
+                # pad along dim=0 (the sequence dimension) on the "bottom"
+                # pad format is (pad_last_dim_left, pad_last_dim_right,
+                #                pad_second_last_dim_left, pad_second_last_dim_right, ...)
+                encoded = F.pad(encoded, (0, 0, 0, max_len - L), mode="constant", value=0)
+                print(f"padded {encoded.shape}")
+            else:
+                # truncate if longer than max_len
+                encoded = encoded[:max_len]
+
+            embeddings.append(encoded)
+
+        return embeddings

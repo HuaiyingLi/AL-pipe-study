@@ -1,10 +1,12 @@
 # configs/regression/MLP.yaml
-
-_target_: al_pipe.regression.mlp.MLP
-# TODO: how to make this dependent variable on MAX_LENGTH
-sizes: [600, 256, 128, 64, 1]
-learning_rate: 0.001
-batch_norm: true
-last_layer_act: "ReLU"
-weight_decay: 0.0
+info:
+  name: "MLP"
+init:
+  _target_: al_pipe.regression.mlp.MLP
+  # TODO: how to make this dependent variable on MAX_LENGTH
+  sizes: [400, 256, 128, 64, 1]
+  learning_rate: 0.001
+  batch_norm: true
+  last_layer_act: "ReLU"
+  weight_decay: 0.0
 

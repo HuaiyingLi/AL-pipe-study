@@ -154,7 +154,7 @@ class BaseDataLoader(DataLoader, ABC):
         return DataLoader(
             self._val_dataset,
             batch_size=self._batch_size,
-            shuffle=False,
+            shuffle=self._shuffle,
             num_workers=self._num_workers,
             pin_memory=self._pin_memory,
             collate_fn=self.get_collate_fn(),
@@ -171,7 +171,7 @@ class BaseDataLoader(DataLoader, ABC):
         return DataLoader(
             self._test_dataset,
             batch_size=self._batch_size,
-            shuffle=False,
+            shuffle=self._shuffle,
             num_workers=self._num_workers,
             pin_memory=self._pin_memory,
             collate_fn=self.get_collate_fn(),
@@ -188,7 +188,7 @@ class BaseDataLoader(DataLoader, ABC):
         return DataLoader(
             self._pool_dataset,
             batch_size=self._batch_size,
-            shuffle=False,
+            shuffle=self._shuffle,
             num_workers=self._num_workers,
             pin_memory=self._pin_memory,
             collate_fn=self.get_collate_fn(),

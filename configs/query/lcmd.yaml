@@ -1,0 +1,5 @@
+info:
+  name: "lcmd"
+init:
+  _target_: al_pipe.queries.lcmd.LCMDQueryStrategy
+  selection_size: ${active_learning.acquisition_batch_size}

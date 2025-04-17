@@ -1,2 +1,5 @@
-_target_: al_pipe.queries.random_sampling.RandomQueryStrategy
-selection_size: ${active_learning.acquisition_batch_size}
+info:
+  name: "random"
+init:
+  _target_: al_pipe.queries.random_sampling.RandomQueryStrategy
+  selection_size: ${active_learning.acquisition_batch_size}

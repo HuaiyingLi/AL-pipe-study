@@ -5,11 +5,16 @@ main.py: Orchestrates the full active learning pipeline for DNA embedding.
 
 import os
 
+# TODO: proper fix this import relative path issue
+import sys
+
 import hydra
 
 from dotenv import load_dotenv
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import Trainer
+
+import al_pipe.bmdal_reg.bmdal.feature_data as real_fd
 
 from al_pipe.data.dna_dataset import DNADataset
 from al_pipe.data_loader.dna_data_loader import DNADataLoader
@@ -19,6 +24,9 @@ from al_pipe.util.general import (
 )
 
 load_dotenv()  # This loads environment variables from the .env file
+
+
+sys.modules["bmdal_reg.bmdal.feature_data"] = real_fd
 
 
 @hydra.main(version_base=None, config_path="../configs", config_name="main")
@@ -54,18 +62,12 @@ def main(cfg: DictConfig) -> None:
     # 2. Instantiate the Static Embedding Model
     # ==========================
 
-    regressor = hydra.utils.instantiate(cfg.regression)
+    regressor = hydra.utils.instantiate(cfg.regression.init)
 
-    print(regressor)
-    print(f"Type of regressor: {type(regressor)}")
-    print(regressor.__class__.__module__)
     # ==========================
     # 3. Prepare the Dataset and DataLoader
     # ==========================
-    embedding_model = hydra.utils.instantiate(cfg.model)
-    print(embedding_model)
-    print(f"Type of embedding_model: {type(embedding_model)}")
-    print(embedding_model.__class__.__module__)
+    embedding_model = hydra.utils.instantiate(cfg.model.init)
 
     dataset = DNADataset(
         data_path=os.path.join(cfg.paths.data_dir, cfg.datasets.data_path),
@@ -82,20 +84,18 @@ def main(cfg: DictConfig) -> None:
         num_workers=cfg.datasets.num_workers,
         pin_memory=cfg.datasets.pin_memory,
         shuffle=cfg.datasets.shuffle,
-        first_batch_strategy=hydra.utils.instantiate(cfg.first_batch),
+        first_batch_strategy=hydra.utils.instantiate(cfg.first_batch.init),
     )
 
     # ==========================
     # 4. Set Up Active Learning Components
     # ==========================
-    query_strategy = hydra.utils.instantiate(cfg.query)
+    query_strategy = hydra.utils.instantiate(cfg.query.init)
     print(query_strategy)
 
     # ==========================
     # 5. Instantiate Trainer and logger
     # ==========================
-    trainer: Trainer = hydra.utils.instantiate(cfg.trainer)
-    print(trainer)
 
     # ==========================
     # 6. Active Learning Loop
@@ -105,13 +105,15 @@ def main(cfg: DictConfig) -> None:
     for iteration in range(n_iterations):
         print(f"\n=== Active Learning Iteration {iteration + 1}/{n_iterations} ===")
 
+        trainer: Trainer = hydra.utils.instantiate(cfg.trainer)
+
         trainer.fit(
             regressor,
             train_dataloaders=full_data_loader.get_train_loader(),
             val_dataloaders=full_data_loader.get_val_loader(),
         )
-
-        query_strategy.select_samples(full_data_loader)
+        trainer.test(regressor, dataloaders=full_data_loader.get_test_loader())
+        query_strategy.select_samples(regressor, full_data_loader)
 
     # ==========================
     # 7. Final Evaluation

@@ -38,8 +38,6 @@ class BaseDataset(Dataset, ABC):
         self.batch_size = batch_size
         self.max_length = max_length
         self.train_val_test_pool_split = train_val_test_pool_split
-        print(f"In BaseDataset: Type of embedding_model: {type(embedding_model)}")
-        print(f"In BaseDataset: embedding_model.__class__.__module__: {embedding_model.__class__.__module__}")
         self.embedding_model = embedding_model
 
     @abstractmethod

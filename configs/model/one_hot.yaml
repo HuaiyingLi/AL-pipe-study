@@ -1,2 +1,5 @@
-_target_: al_pipe.embedding_models.static.onehot_embedding.OneHotEmbedder
-device: ${device}
+info:
+  name: "onehot"
+init:
+  _target_: al_pipe.embedding_models.static.onehot_embedding.OneHotEmbedder
+  device: ${device}

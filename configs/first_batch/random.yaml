@@ -1,1 +1,4 @@
-_target_: al_pipe.first_batch.random_first_batch.RandomFirstBatch
+info:
+  name: "random"
+init:
+  _target_: al_pipe.first_batch.random_first_batch.RandomFirstBatch

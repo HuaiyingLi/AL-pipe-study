@@ -34,6 +34,11 @@ class DNADataset(BaseDataset):
         """Update the embedded data."""
         self.embedded_data: list[torch.Tensor] = self._embed_data()
 
+    # TODO: check potential bug here, 1. dtype 2. tolist() -> tensor?
+    def get_labels(self) -> torch.Tensor:
+        """Get the labels of the data."""
+        return torch.tensor(self.data["values"].tolist(), dtype=torch.float32).unsqueeze(1)
+
     def return_subset(self, indices: list[int]) -> "DNADataset":
         """Return a subset of the data."""
         new_dataset = deepcopy(self)
@@ -45,10 +50,16 @@ class DNADataset(BaseDataset):
         """Get a subset of the data."""
         return self.data.iloc[indices]
 
-    def delete(self, indices: list[int]) -> None:
-        """Delete the items at the given indices."""
-        for index in sorted(indices, reverse=True):
-            del self.data[index]
+    def delete(self, indices):
+        # allow indices as Tensor, list of Tensor, or list of ints
+        # TODO: shady fix, change when have time
+        if isinstance(indices, torch.Tensor):
+            indices = indices.tolist()
+        indices = [int(i) for i in indices]
+        for idx in sorted(indices, reverse=True):
+            # drop by positional index, not label
+            self.data = self.data.drop(self.data.index[idx])
+        self.data.reset_index(drop=True, inplace=True)
 
     def append(self, data: pd.DataFrame) -> None:
         """Append the given data to the data."""

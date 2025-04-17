@@ -11,9 +11,14 @@ import torch.nn.functional as F
 SEQUENCE_CODE = {"A": 0, "T": 1, "C": 2, "G": 3, "N": 0}
 
 
+def flat_list_tensor(t_list: list[torch.Tensor]) -> torch.Tensor:
+    """Flatten a list of tensors into a single tensor."""
+    return torch.stack(t_list).view(len(t_list), -1)
+
+
 def tensor_key_bytes(t: torch.Tensor) -> bytes:
     """
-    Convert a tensor to bytes.
+    Convert a tensor to bytes. (for dict key).
     """
     return t.cpu().numpy().tobytes()
 

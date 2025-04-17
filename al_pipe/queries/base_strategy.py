@@ -2,6 +2,8 @@
 
 from abc import ABC, abstractmethod
 
+import torch
+
 from al_pipe.data_loader import base_data_loader
 
 '''
@@ -47,7 +49,7 @@ class BaseQueryStrategy(ABC):
         self.selection_size = selection_size
 
     @abstractmethod
-    def select_samples(pool_loader: base_data_loader) -> None:
+    def select_samples(regressor: torch.nn.Module, pool_loader: base_data_loader) -> None:
         """
         Select samples from unlabeled pool for labeling.
 

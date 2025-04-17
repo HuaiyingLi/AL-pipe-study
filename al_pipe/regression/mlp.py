@@ -68,9 +68,17 @@ class MLP(pl.LightningModule):
         """
         x, y = batch
         y_hat = self(x)
-        loss = F.mse_loss(y_hat, y)
+        loss = F.smooth_l1_loss(y_hat, y, beta=1.0)
         # Logging the training loss this will be synced to wandb
-        self.log("train_loss", loss)
+        self.log(
+            "train_loss",
+            loss,
+            on_step=True,  # log every batch
+            on_epoch=True,  # also compute/record the epoch average
+            prog_bar=True,  # show in progress bar
+            logger=True,  # send to W&B (default)
+            sync_dist=True,  # if you’re doing DDP
+        )
         return loss
 
     def validation_step(self, batch: tuple, batch_idx: int) -> None:
@@ -82,8 +90,36 @@ class MLP(pl.LightningModule):
         """
         x, y = batch
         y_hat = self(x)
-        val_loss = F.mse_loss(y_hat, y)
-        self.log("val_loss", val_loss)
+        val_loss = F.smooth_l1_loss(y_hat, y, beta=1.0)
+        self.log(
+            "val_loss",
+            val_loss,
+            on_step=True,  # you usually only care per‐epoch for val
+            on_epoch=True,
+            prog_bar=True,
+            logger=True,
+            sync_dist=True,
+        )
+
+    def test_step(self, batch: tuple, batch_idx: int) -> None:
+        """Test step.
+
+        Args:
+            batch: Tuple of (x, y)
+            batch_idx: Index of current batch
+        """
+        x, y = batch
+        y_hat = self(x)
+        test_loss = F.smooth_l1_loss(y_hat, y, beta=1.0)
+        self.log(
+            "test_loss",
+            test_loss,
+            on_step=True,  # you usually only care per‐epoch for val
+            on_epoch=True,
+            prog_bar=True,
+            logger=True,
+            sync_dist=True,
+        )
 
     def configure_optimizers(self) -> dict:
         """Configure optimizers and learning rate schedulers.
