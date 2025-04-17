@@ -8,6 +8,7 @@ from torch.nn import functional as F
 
 from al_pipe.data.dna_dataset import DNADataset
 from al_pipe.data_loader.base_data_loader import BaseDataLoader
+from al_pipe.first_batch.base_first_batch import FirstBatchStrategy
 
 
 class DNADataLoader(BaseDataLoader):
@@ -24,6 +25,7 @@ class DNADataLoader(BaseDataLoader):
         shuffle: bool = True,
         num_workers: int = 0,
         pin_memory: bool = False,
+        first_batch_strategy: FirstBatchStrategy | None = None,
     ) -> None:
         r"""Initialize the DNA data loader.
 
@@ -35,7 +37,7 @@ class DNADataLoader(BaseDataLoader):
             pin_memory: Whether to pin memory in GPU training
             collate_fn: The collate function to use for the data
         """
-        super().__init__(dataset, batch_size, shuffle, num_workers, pin_memory)
+        super().__init__(dataset, batch_size, shuffle, num_workers, pin_memory, first_batch_strategy)
         # TODO: move max_length to the constructor of the class and not using it from the dataset
         self._max_length = dataset.max_length
         self.collate_fn = self.get_collate_fn()

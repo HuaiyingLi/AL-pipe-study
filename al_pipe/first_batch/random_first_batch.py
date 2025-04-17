@@ -3,10 +3,10 @@
 import numpy as np
 
 from al_pipe.data_loader.base_data_loader import BaseDataLoader
-from al_pipe.first_batch.base_first_batch import FirstBatchStrategyFactory
+from al_pipe.first_batch.base_first_batch import FirstBatchStrategy
 
 
-class RandomFirstBatch(FirstBatchStrategyFactory):
+class RandomFirstBatch(FirstBatchStrategy):
     """
     A strategy that randomly selects sequences for the first batch.
 
@@ -20,20 +20,19 @@ class RandomFirstBatch(FirstBatchStrategyFactory):
         """
         Randomly select sequences for the first batch and update the data loader.
 
-        This method randomly splits the initial dataset into training, validation, test
+        This method randomly splits the initial data_set into training, validation, test
         and pool sets according to the sizes specified in self.batch_size. The splits
         are then used to update the provided data loader.
 
         Args:
-            data_loader (BaseDataLoader): The data loader containing the full dataset
+            data_loader (BaseDataLoader): The data loader containing the full data_set
 
         Returns:
             BaseDataLoader: The updated data loader with train/val/test/pool splits
         """
         # TODO: There might be a faster way to split using train_test_split
-        # Get total dataset size
-        dataset = data_loader.get_dataset()
-        total_size = len(dataset)
+        # Get total data_set size
+        total_size = len(data_loader.get_dataset())
 
         # Randomly select indices for all splits
         indices = np.random.permutation(total_size)
@@ -53,9 +52,9 @@ class RandomFirstBatch(FirstBatchStrategyFactory):
             start_idx = end_idx
 
         # Update data loader with new splits
-        data_loader.update_train_dataset(split_indices[0])
-        data_loader.update_val_dataset(split_indices[1])
-        data_loader.update_test_dataset(split_indices[2])
-        data_loader.update_pool_dataset(indices[start_idx:])
+        data_loader.update_train_dataset(split_indices[0], action_type="first-set")
+        data_loader.update_val_dataset(split_indices[1], action_type="first-set")
+        data_loader.update_test_dataset(split_indices[2], action_type="first-set")
+        data_loader.update_pool_dataset(split_indices[3], action_type="first-set")
 
         return data_loader

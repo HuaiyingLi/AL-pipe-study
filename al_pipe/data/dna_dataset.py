@@ -1,11 +1,12 @@
 """Specialized dataset class(es) for DNA data."""
 
+from copy import deepcopy
+
 import pandas as pd
 import torch
 
 from al_pipe.data.base_dataset import BaseDataset
 from al_pipe.embedding_models.static.base_static_embedder import BaseStaticEmbedder
-from al_pipe.first_batch.base_first_batch import FirstBatchStrategyFactory
 from al_pipe.util.data import load_data
 
 
@@ -19,19 +20,39 @@ class DNADataset(BaseDataset):
         batch_size: int,
         train_val_test_pool_split: list[float],
         max_length: int,
-        embedding_model: BaseStaticEmbedder | None = None,
-        first_batch_strategy: FirstBatchStrategyFactory | None = None,
+        embedding_model: BaseStaticEmbedder,
     ) -> None:
-        super().__init__(
-            data_path, data_name, batch_size, train_val_test_pool_split, embedding_model, first_batch_strategy
-        )
+        super().__init__(data_path, data_name, batch_size, train_val_test_pool_split, max_length, embedding_model)
         self.data: pd.DataFrame = self._load_data()
         self.max_length: int = max_length
 
-        if embedding_model is not None:
-            self.embedded_data: list[torch.Tensor] = self._embed_data()
-        if first_batch_strategy is not None:
-            self.first_batch_strategy = first_batch_strategy
+        if self.embedding_model is not None:
+            self.update_embedded_data()
+
+    # TODO: this is such shit design (you need to update embedded data every run)
+    def update_embedded_data(self) -> None:
+        """Update the embedded data."""
+        self.embedded_data: list[torch.Tensor] = self._embed_data()
+
+    def return_subset(self, indices: list[int]) -> "DNADataset":
+        """Return a subset of the data."""
+        new_dataset = deepcopy(self)
+        new_dataset.data = self.data.iloc[indices]
+        new_dataset.update_embedded_data()
+        return new_dataset
+
+    def get_subset(self, indices: list[int]) -> pd.DataFrame:
+        """Get a subset of the data."""
+        return self.data.iloc[indices]
+
+    def delete(self, indices: list[int]) -> None:
+        """Delete the items at the given indices."""
+        for index in sorted(indices, reverse=True):
+            del self.data[index]
+
+    def append(self, data: pd.DataFrame) -> None:
+        """Append the given data to the data."""
+        self.data = pd.concat([self.data, data], ignore_index=True)
 
     def _embed_data(self) -> list[torch.Tensor]:
         """Embed the data."""

@@ -2,8 +2,6 @@
 
 from abc import ABC, abstractmethod
 
-import torch
-
 from al_pipe.data_loader import base_data_loader
 
 '''
@@ -45,15 +43,16 @@ class BaseQueryStrategy(ABC):
     selected for labeling in each active learning iteration.
     """
 
+    def __init__(self, selection_size: int) -> None:
+        self.selection_size = selection_size
+
     @abstractmethod
-    def select_samples(self, model: torch.nn.Module, pool_loader: base_data_loader, batch_size: int) -> list[int]:
+    def select_samples(pool_loader: base_data_loader) -> None:
         """
         Select samples from unlabeled pool for labeling.
 
         Args:
-            model: The current model being trained
-            unlabeled_data: Pool of unlabeled samples to select from
-            batch_size: Number of samples to select
+            pool_loader: Pool of unlabeled samples to select from
 
         Returns:
             List of indices of selected samples from unlabeled pool

@@ -2,10 +2,7 @@
 
 import random
 
-import torch
-
-from al_pipe.data.base_dataset import BaseDataset
-from al_pipe.data_loader import base_data_loader
+from al_pipe.data_loader.base_data_loader import BaseDataLoader
 from al_pipe.queries.base_strategy import BaseQueryStrategy
 
 
@@ -16,46 +13,26 @@ class RandomQueryStrategy(BaseQueryStrategy):
     This strategy randomly selects samples from the unlabeled pool for labeling.
 
     Attributes:
-        batch_size (int): Number of samples to select in each query.
+        selection_size (int): Number of samples to select in each query.
     """
 
-    def __init__(self, dataset: BaseDataset, batch_size: int) -> None:
-        """
-        Initialize the RandomQueryStrategy.
+    def __init__(self, selection_size: int) -> None:
+        super().__init__(selection_size)
 
-        Args:
-            dataset (BaseDataset): The dataset to select samples from.
-            batch_size (int): Number of samples to select in each query.
-        """
-        super().__init__()
-        # TODO: what kind of datasets are we importing
-        self.dataset = dataset
-        self.batch_size = batch_size
-
-    def select_samples(self, model: torch.nn.Module, pool_loader: base_data_loader, batch_size: int) -> list[int]:
+    # TODO: add status tracker later
+    def select_samples(self, full_data_loader: BaseDataLoader) -> None:
         """
         Select samples from the unlabeled pool for labeling.
 
         Args:
-            model: The current model being trained (not used in this strategy).
-            unlabeled_data: Pool of unlabeled samples to select from.
-            batch_size: Number of samples to select.
+            pool_loader: Pool of unlabeled samples to select from.
 
         Returns:
             List of indices of selected samples from unlabeled pool.
         """
-        if batch_size > len(pool_loader):
-            raise ValueError("Batch size cannot be greater than the number of unlabeled samples.")
-        else:
-            selected_indices = random.sample(range(len(pool_loader)), batch_size)
-
-        # update the pool loader
-        pool_loader.update_pool_dataset(selected_indices, action_type="remove")
-
-        return selected_indices
-
-    def get_status(self) -> None:
-        """
-        Returns the status of the selection. Always returns None for this strategy.
-        """
-        return None
+        try:
+            selected_indices = random.sample(range(len(full_data_loader.get_pool_loader())), self.selection_size)
+            # update the pool loader
+            full_data_loader.update_train_pool_dataset(selected_indices)
+        except ValueError:
+            return

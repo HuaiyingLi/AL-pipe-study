@@ -1,4 +1,4 @@
 
-al_iterations: 5
+al_iterations: 2
 
 acquisition_batch_size: 32
