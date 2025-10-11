@@ -67,6 +67,7 @@ def dna_collate_fn(
     for tensor in inputs:
         if tensor.shape[0] < max_length:
             processed_inputs.append(F.pad(tensor, (0, 0, 0, max_length - tensor.shape[0]), "constant", 0))
+            #F.pad的填充顺序: (最后一维左, 最后一维右, 倒数第二维左, 倒数第二维右)
             # padding = torch.zeros(max_length - tensor.shape[0], *tensor.shape[1:])
             # processed_inputs.append(torch.cat([tensor, padding], dim=0))
         else:
