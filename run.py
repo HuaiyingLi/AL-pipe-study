@@ -1,10 +1,11 @@
 """CLI entry point for running experiments."""
 
-import argparse  # noqa: D100
+import argparse  # noqa: D100 让ruff在检查时忽略文档字符串要求
 
 from al_pipe.alpipe import ActivePipe
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser() #argparse: receive parameters from command line
+#parser = argparse.ArgumentParser(description='...')
 parser.add_argument("--fb_strategy", type=str, default="Random")
 args = parser.parse_args()
 
