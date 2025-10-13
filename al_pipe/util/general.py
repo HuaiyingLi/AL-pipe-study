@@ -66,7 +66,7 @@ def avail_device(device: str) -> str:
     Returns:
         torch.device: Available device to use
     """
-    torch.backends.cudnn.enabled = False
+    torch.backends.cudnn.enabled = False #禁用cudnn自动优化（可能会自动选择不同的算法）
     use_cuda = torch.cuda.is_available()
     device = torch.device(device if use_cuda else "cpu")
     print("device: ", device)
@@ -161,6 +161,8 @@ def print_sys_stderr(s: str) -> None:
         s (str): the string to print
     """
     print(s, flush=True, file=sys.stderr)
+    #file 默认为stdout, stderr为错误流，可以分别用> 2>输出到不同的文件中去
+    #flush output immediately without buffering
 
 
 # def initialize_labeler(labeler_config: dict) -> BaseLabeler:
